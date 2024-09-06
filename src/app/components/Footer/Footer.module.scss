@@ -1,0 +1,13 @@
+.footer {
+
+  /* @apply fixed bottom-2 left-0; */
+  @apply w-full;
+
+  &Inner {
+    @apply grid gap-4 w-[80%] mx-auto lg:flex lg:items-center lg:justify-center md:w-[50%];
+  }
+
+  .address {
+    @apply text-center text-white mt-5;
+  }
+}

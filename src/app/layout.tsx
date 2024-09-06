@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import './styles/global.scss';
+import Header from '@/app/components/Header';
+import Footer from "@/app/components/Footer/Footer";
+import PageWrapper from './pageWrapper';  // 名前を変更
 
 export const metadata: Metadata = {
-  title: "Create Monster Generator",
-  description: "Create Monster Generator",
+  title: "AI MONSTER CREATOR",
+  description: "Create Monster Generate",
 };
 
 export default function RootLayout({
@@ -13,7 +16,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body>{children}</body>
+      <PageWrapper>
+        <Header />
+        <main>
+          {children}
+        </main>
+        <Footer />
+      </PageWrapper>
     </html>
   );
 }

@@ -1,0 +1,10 @@
+
+
+.iamgeList {
+  @apply flex justify-center w-[max-content] gap-5 md:w-[80%] mx-auto;
+
+  &Wrap {
+    overflow-x:scroll;
+    max-width: 100%;
+  }
+}

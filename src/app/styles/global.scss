@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  @apply relative;
+  overflow-x: hidden;
+  min-height: 100vh;
+  &::before ,
+  &::after {
+    @apply fixed inset-0 w-full h-full;
+  }
+  &::before {
+    content: '';
+    background: url(/img/siteBG.jpg) no-repeat center center/cover;
+    z-index: -1;
+    /* animation: fadeInOpacity 2s 1s ease-in-out forwards; */
+    opacity: 0.4;
+    
+  }
+  
+  &::after {
+    content: '';
+    background: #000;
+    z-index: -2;
+  }
+
+  &.isUnderPage {
+    &::before {
+      opacity: 0.2;
+    }
+  }
+}
+main {
+  @apply w-[100%]  text-white py-40;
+}
+
+@keyframes fadeInOpacity {
+  0% {
+    opacity: 1;
+    scale: 1.5;
+    rotate: 10deg;
+  }
+  50% {
+    opacity: 0.5;
+    scale: 1.2;
+    rotate: -5deg;
+  }
+  100% {
+    opacity: 0.4;
+    scale: 1;
+    rotate: 0deg;
+  }
+}
+
+
+
+:root {
+  --primary: #E50035;
+  --bk: #151515;
+}
+
+.globalConatiner {
+  width: 100%;
+  > * + * {
+    margin-top: 3.5em;
+  }
+}

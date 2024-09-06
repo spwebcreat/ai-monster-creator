@@ -1,10 +1,11 @@
 
+
 import React, { useEffect, useState } from 'react'
 import styles from './MonsterForm.module.css'
 import { MONSTER_ATTRIBUTES } from '../constans/atributes'
 
 type MonsterFormProps = {
-  onSubmit: (description: string, attributes: string, hiddenAttributeJp: string) => void;
+  onSubmit: (description: string, attributes: string, hiddenAttributeJp: string, type:string) => void;
   isLoading: boolean;
   isGenerated: boolean;
 }
@@ -13,10 +14,11 @@ const MonsterForm = ({ onSubmit, isLoading, isGenerated }: MonsterFormProps) => 
 
   const [description, setDescription] = useState("");
   const [attributes, setAttributes] = useState("");
+  const [type, setType] = useState("");
   const [hiddenAttributeJp, setHiddenAttributeJp] = useState("");
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit(description, attributes, hiddenAttributeJp);
+    onSubmit(description, attributes, hiddenAttributeJp,type);
     // setDescription("");
     // setAttributes("");
     // setHiddenAttributeJp("");
@@ -60,6 +62,25 @@ const MonsterForm = ({ onSubmit, isLoading, isGenerated }: MonsterFormProps) => 
               {attribute.ja}
             </option>
           ))}
+        </select>
+        <input type="hidden" value={hiddenAttributeJp}/>
+      </div>
+
+      <div className={styles.formGroup}>
+        <label htmlFor="type" className={styles.label}>
+          モンスターのタイプ
+        </label>
+        <select 
+          id="type" 
+          className={styles.select}
+          onChange={(e) => setType(e.target.value)}
+          required
+          value={type}
+        >
+          <option value="">選択してください</option>
+          <option value="human">人型</option>
+          <option value="animal">動物型</option>
+          
         </select>
         <input type="hidden" value={hiddenAttributeJp}/>
       </div>

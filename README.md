@@ -12,7 +12,7 @@ AI Monster Generatorは、ユーザーが入力した特徴と属性を基にAI�
 - 生成されたモンスター画像をSNS（X/Twitter）で共有
 
 ## 技術スタック
-- Frontend: Next.js 14, React 18, TypeScript
+- Frontend: Next.js 14, React18, TypeScript
 - Styling: Tailwind CSS
 - API Requests: Axios
 - AI画像生成: GetImg.ai API (FLUX.1 [schnell] Text to Image)

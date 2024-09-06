@@ -13,7 +13,7 @@ export const MONSTER_ATTRIBUTES = [
   { ja: '岩', en: 'Rock' },
   { ja: 'ゴースト', en: 'Ghost' },
   { ja: 'ドラゴン', en: 'Dragon' },
-  { ja: '悪', en: 'Dark' },
+  { ja: '魔族', en: 'Devil' },
   { ja: '鋼', en: 'Steel' },
   { ja: 'フェアリー', en: 'Fairy' },
 ];

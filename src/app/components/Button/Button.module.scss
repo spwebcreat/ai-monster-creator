@@ -1,0 +1,19 @@
+.button {
+
+  @apply flex justify-center items-center w-[80%] md:w-fit mx-auto px-10 py-5 bg-primary rounded-md font-bold transition duration-300;
+  @apply hover:bg-slate-800;
+
+  &Lg {
+    @apply w-[80%];
+  }
+  &Full {
+    @extend .button;
+    @apply w-[100%];
+  }
+
+  &FullSkelton {
+    @apply w-[100%] bg-white/55 text-bk;
+    @apply hover:bg-white;
+  }
+
+}
