@@ -20,6 +20,7 @@ body {
   @apply relative;
   overflow-x: hidden;
   min-height: 100vh;
+  font-feature-settings: "palt";
   &::before ,
   &::after {
     @apply fixed inset-0 w-full h-full;
@@ -49,13 +50,13 @@ body {
   &.isCreate {
     &::before {
       animation: none;
-      opacity: 0.2;
+      opacity: 0.1;
     }
   }
   &.isUnderPage {
     &::before {
       animation: none;
-      opacity: 0.4;
+      opacity: 0.2;
     }
   }
 }
@@ -88,10 +89,65 @@ main {
   --bk: #151515;
 }
 
-.globalConatiner {
-  width: min(1000px, 100%);
-  margin-inline: auto;
+.global {
+  &Conatiner {
+    @apply w-full max-w-[1000px] mx-auto;
+    > * + * {
+      @apply mt-20;
+    }
+  }
+
+  &Title {
+    @apply text-4xl font-bold text-center;
+  }
+
+  &Field {
+    @apply w-[min(100%,750px)] mx-auto text-lg;
+    line-height: 2;
+    > * + * {
+      @apply mt-5;
+    }
+
+    &Title {
+      @apply text-3xl font-bold border-b border-gray-600 pb-2;
+    }
+    p {
+      line-height: 2;
+    }
+  }
+
+}
+
+.attentionText {
+  @apply text-center text-lg bg-primary p-4 text-white font-bold;
+  opacity: 0;
+  pointer-events: none;
+  animation: fadeInOpacity .25s 3s ease-in-out forwards;
+  @keyframes fadeInOpacity {
+    0% {
+      opacity: 0;
+      translate: 0 100px;
+    }
+    100% {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+}
+
+.profiles {
+  text-align: justify;
   > * + * {
-    margin-top: 3.5em;
+    @apply mt-5;
+  }
+}
+.profileHeader {
+  @apply flex items-center gap-5;
+
+  .name {
+    @apply text-2xl grid gap-2;
+    span {
+      @apply text-sm;
+    }
   }
 }

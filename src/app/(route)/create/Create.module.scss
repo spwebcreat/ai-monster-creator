@@ -107,8 +107,11 @@
 
   &Group {
 
-    @apply bg-bk p-4 rounded-md flex items-center gap-3;
-    
+    @apply bg-bk p-4 rounded-md flex items-center gap-3 border-gray-700 border-2 transition-colors;
+    &:has(input:focus),
+    &:has(select:focus) {
+      @apply border-cyan-600;
+    }
     label {
       @apply bg-primary min-w-[80px] text-lg font-bold text-center rounded-md p-2 px-4;
     }
@@ -117,7 +120,7 @@
     select{
       @apply bg-bk py-4;
       @apply flex-grow;
-      @apply focus:border-0 outline-none;
+      @apply focus:border-0 outline-none ;
     }
     select {
       @apply cursor-pointer;

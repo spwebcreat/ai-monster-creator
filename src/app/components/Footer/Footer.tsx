@@ -13,6 +13,9 @@ const Footer = () => {
       
         <div className={styles.address}>&copy;ai Monster Creator created by SP WEB CREAT.</div>
       </footer>
+      <div className="attentionText fixed bottom-0 left-0 w-full">
+        このサイトはポートフォリオ目的で作成しております。1日あたりのモンスター生成回数を制限しております。
+      </div>
     </>
   )
 }

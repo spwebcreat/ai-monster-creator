@@ -1,7 +1,7 @@
 .footer {
 
   /* @apply fixed bottom-2 left-0; */
-  @apply w-full;
+  @apply w-full pb-36;
 
   &Inner {
     @apply grid gap-4 w-[80%] mx-auto lg:flex lg:items-center lg:justify-center md:w-[50%];
