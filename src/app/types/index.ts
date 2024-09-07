@@ -22,4 +22,5 @@ export interface Monster {
   type: string;
   style: string;
   createdAt: string;
+  
 }

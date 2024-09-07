@@ -17,15 +17,32 @@ const MonsterForm = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isGenerated, setIsGenerated] = useState<boolean>(false);
   const [isClient, setIsClient] = useState(false);
+  const [todayCount, setTodayCount] = useState();
 
   useEffect(() => {
     setIsClient(true);
+    const fetchTodayCount = async () => {
+      const countResponse = await fetch('/api/monsters');
+      const { todayCount } = await countResponse.json();
+      setTodayCount(todayCount);
+    };
+
+    fetchTodayCount();
   }, []);
 
   if (!isClient) return null;
 
 
   const handleFormSubmit = async (description:string,attribute:string, hiddenAttributeJp:string,type:string,style:string) => {
+
+    const countResponse = await fetch('/api/monsters');
+    const { todayCount } = await countResponse.json();
+    setTodayCount(todayCount);
+    if (todayCount >= 100) { // 例: 1日の制限を100回に設定
+      alert('本日の生成限度に達しました。明日またお試しください。');
+      return;
+    }
+
     setIsLoading(true);
     setIsGenerated(false);
     setFormData({ description, attribute, hiddenAttributeJp, type, style });
@@ -54,7 +71,7 @@ const MonsterForm = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const result = await response.json();
-      console.log('Monster saved:', result);
+      // console.log('Monster saved:', result); //デバッグ用
     } catch (error) {
       console.error('Error saving monster:', error);
     } finally {
@@ -185,6 +202,7 @@ const MonsterForm = () => {
           isLoading={isLoading}
           isGenerated={!!monsterImg}
         />
+        <p className="text-center mt-4">今日の生成回数: {todayCount}</p>
     </div>
     
 

@@ -14,8 +14,8 @@ const fetchMonsterImg = async ({
     style
   }: FetchMonsterImgProps): Promise<string> => {
 
-    console.log(type);
-    console.log(style);
+    // console.log(type);
+    // console.log(style);
 
     let basePrompt = '';
     

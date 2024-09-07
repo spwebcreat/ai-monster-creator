@@ -22,7 +22,7 @@ export default function PageWrapper({ children }: PageWrapperProps) {
       isPage = "isUnderPage"
       break;
   }
-  console.log(isPage)
+  // console.log(isPage) //デバッグ用
   return (
     <body className={isPage}>
       <Motion>

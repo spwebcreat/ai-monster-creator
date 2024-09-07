@@ -12,18 +12,19 @@ async function getMonsters() {
       throw new Error(`HTTP error! status: ${res.status}`);
     }
     const data = await res.json();
-    if (!Array.isArray(data)) {
+    // データ構造のチェックを追加
+    if (!data || !Array.isArray(data.monsters)) {
       throw new Error('Invalid data format');
     }
-    return data as Monster[];
+    return { monsters: data.monsters as Monster[], todayCount: data.todayCount as number };
   } catch (error) {
     console.error('Failed to fetch monsters:', error);
-    return []; // エラーが発生した場合は空の配列を返す
+    return { monsters: [], todayCount: 0 }; // エラーが発生した場合は空の配列を返す
   }
 }
 
 const Home = async () => {
-  const monsters: Monster[] = await getMonsters();
+  const { monsters, todayCount } = await getMonsters();
   return (
     <>
       <div className="globalConatiner">
@@ -52,6 +53,7 @@ const Home = async () => {
 
         <div className={`w-[80%] md:w-[50%] mx-auto grid gap-4`}>
           <Button text="👾モンスターを生成する" href="/create" className="buttonFull"></Button>
+          <p className="text-center">今日の生成回数: {todayCount}</p>
         </div>
       </div>
     </>
