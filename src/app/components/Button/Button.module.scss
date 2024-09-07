@@ -1,6 +1,6 @@
 .button {
 
-  @apply flex justify-center items-center w-[80%] md:w-fit mx-auto px-10 py-5 bg-primary rounded-md font-bold transition duration-300;
+  @apply flex justify-center items-center w-[80%] md:w-fit mx-auto px-5 py-5 bg-primary rounded-md font-bold transition duration-300;
   @apply hover:bg-slate-800;
 
   &Lg {
@@ -16,4 +16,12 @@
     @apply hover:bg-white;
   }
 
+  &:has(svg) {
+    @apply gap-2;
+  }
+
+}
+
+.share {
+  @apply bg-sky-800;
 }

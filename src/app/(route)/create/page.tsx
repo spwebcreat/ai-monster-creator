@@ -11,10 +11,7 @@ const Create = () => {
 
     <>
       <div className="globalConatiner">
-
         <MonsterForm />
-        
-
       </div>
     </>
 

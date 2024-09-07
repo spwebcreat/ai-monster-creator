@@ -12,22 +12,61 @@
   .magicCircleImageActive {
     @apply absolute top-10;
     animation : fadeIn 1s forwards;
+    &.isGenerated {
+      animation : fadeOut 1s forwards !important;
+    }
   }
 
 }
 
+.monster {
 
-.monsterCard {
-  @apply absolute aspect-[1/1] w-[max(150px,35%)] mx-auto bg-bk left-1/2 z-0 top-10;
-  transition: all 0.5s;
-  translate: -50% 0;
-  animation : fuwafuwa 2s infinite ; // , horizontalSpin 3s infinite
+  &Card {
+    @apply absolute aspect-[1/1] w-[max(150px,35%)] mx-auto left-1/2 z-0 top-10;
+    transition: all 0.5s;
+    translate: -50% 0;
+    animation : fuwafuwa 2s infinite ; // , horizontalSpin 3s infinite
+    background: linear-gradient(90deg, rgba(0, 255, 162, 1), rgba(146, 151, 252, 1));
+    &::before {
+      content:'';
+      @apply absolute inset-0 ;
+      background: linear-gradient(90deg, rgba(0, 255, 162, 1), rgba(146, 151, 252, 1));
+      background-size: 200% 200%;
+      animation: bgGradation 3s infinite;
+      transition: all 0.5s;
+      pointer-events: none;
+    }
+  }
+
+  &Meta {
+    @apply w-fit mx-auto my-10;
+
+    &Title {
+      @apply text-4xl font-bold text-center mb-4;
+    }
+
+    dl {
+      @apply grid grid-cols-[100px,1fr];
+      + dl {
+        @apply mt-1;
+      }
+    }
+    dt {
+      @apply font-bold bg-primary text-center p-2;
+    }
+    dd {
+      @apply bg-bk text-center p-2 px-5;
+    }
+  }
 }
 
 .createdImg {
   &.monsterCard {
     animation: none;
     animation : fadeInScale 1s forwards , fcomplateFwafuwa 2s 1s infinite;
+    &::before {
+      opacity: 0;
+    }
   }
 }
 
@@ -35,6 +74,54 @@
   &.monsterCard {
     animation: none;
     animation : horizontalSpin 2s infinite !important;
+    &::before {
+      opacity: 1;
+      
+    }
+  }
+}
+
+
+.resultButtonGroup {
+  @apply grid grid-cols-2 gap-4 place-content-center my-10 w-[90%] mx-auto lg:w-[100%];
+  button,
+  a {
+    @apply w-full;
+  }
+}
+
+.submitButtonWrap {
+  @apply w-[90%] mx-auto mt-10 lg:w-[100%];
+}
+
+.loadingText {
+  @apply text-center my-10 flex items-center gap-3 justify-center;
+}
+
+
+.form {
+
+  &Inner {
+    @apply grid gap-4 w-[90%] mx-auto lg:w-[100%];
+  }
+
+  &Group {
+
+    @apply bg-bk p-4 rounded-md flex items-center gap-3;
+    
+    label {
+      @apply bg-primary min-w-[80px] text-lg font-bold text-center rounded-md p-2 px-4;
+    }
+    
+    input ,
+    select{
+      @apply bg-bk py-4;
+      @apply flex-grow;
+      @apply focus:border-0 outline-none;
+    }
+    select {
+      @apply cursor-pointer;
+    }
   }
 }
 
@@ -102,5 +189,17 @@
   }
   50% {
     transform: translateY(15px) scale(1.5);
+  }
+}
+
+@keyframes bgGradation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
   }
 }

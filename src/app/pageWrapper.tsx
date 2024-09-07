@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
+import Motion from '@/app/components/Motion';
 
 type PageWrapperProps = {
   children: ReactNode;
@@ -9,11 +10,24 @@ type PageWrapperProps = {
 
 export default function PageWrapper({ children }: PageWrapperProps) {
   const pathname = usePathname();
-  const isTopPage = pathname === '/';
-
+  let isPage = "";
+  switch (pathname) {
+    case '/':
+      isPage = "isTop"
+      break;
+    case '/create/':
+      isPage = "isCreate"
+      break;
+    default:
+      isPage = "isUnderPage"
+      break;
+  }
+  console.log(isPage)
   return (
-    <body className={isTopPage ? 'isTop' : 'isUnderPage'}>
-      {children}
+    <body className={isPage}>
+      <Motion>
+        {children}
+      </Motion>
     </body>
   );
 }

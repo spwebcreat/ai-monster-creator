@@ -2,19 +2,19 @@
 
 import styles from './Create.module.scss'
 import Image from 'next/image'
-import Button from '@/app/components/Button'
+import { ButtonShare , Button } from '@/app/components/Button'
 import Loading from "@/app/loading"
 import { fetchMonsterImg } from "@/app/lib/getImgApi";
 import React, { useEffect, useState } from "react";
 import MonsterFormDetail from './MonsterFormDetail'
-
-
+import { IconShare,IconDownload } from '@/app/components/Icons'
 
 const MonsterForm = () => {
 
-  const [formData, setFormData] = useState( { description: "", attribute: "" , hiddenAttributeJp: "" ,type :""} );
+  const [formData, setFormData] = useState( { description: "", attribute: "" , hiddenAttributeJp: "" ,type :"" , style:""} );
   const [monsterImg, setMonsterImg] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isGenerated, setIsGenerated] = useState<boolean>(false);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -24,19 +24,23 @@ const MonsterForm = () => {
   if (!isClient) return null;
 
 
-  const handleFormSubmit = async (description:string,attribute:string, hiddenAttributeJp:string,type:string) => {
+  const handleFormSubmit = async (description:string,attribute:string, hiddenAttributeJp:string,type:string,style:string) => {
     setIsLoading(true);
-    setFormData({ description, attribute, hiddenAttributeJp, type });
-    const imageUrl : string = await fetchMonsterImg({ description, attribute, type });
+    setIsGenerated(false);
+    setFormData({ description, attribute, hiddenAttributeJp, type, style });
+    const imageUrl : string = await fetchMonsterImg({ description, attribute, type, style });
     setMonsterImg(imageUrl);
-    setIsLoading(false);
+    setTimeout(() => {
+      setIsLoading(false);
+      setIsGenerated(true);
+    }, 2000);
   };
 
   const handleSnsShare = () => {
     if (typeof window !== 'undefined') {
       const shareImg = encodeURIComponent(monsterImg);
       const shareText = encodeURIComponent(`
-        モンスターを発見！属性: ${formData.hiddenAttributeJp} 特徴: ${formData.description} \n#AIモンスター画像ジェネレーター #モンスター画像生成`
+        モンスターを作成しました！属性: ${formData.hiddenAttributeJp} 特徴: ${formData.description} \n#AIモンスター画像ジェネレーター #モンスター画像生成`
       );
       const url = `https://x.com/intent/tweet?text=${shareText}&url=${shareImg}`;
       window.open(url, '_blank');
@@ -47,10 +51,10 @@ const MonsterForm = () => {
 
   return (
     <>
-    
     <div className={styles.magicCircle}>
         
         <div className={`${styles.monsterCard} ${isLoading && styles.isLoading} ${monsterImg && styles.createdImg}`}>
+
           { monsterImg && !isLoading &&
               <Image 
                 src={monsterImg} 
@@ -59,40 +63,101 @@ const MonsterForm = () => {
                 height={800} 
                 className={styles.monsterImage}
             />
-
           }
 
         </div>
 
         <div className={styles.magicCircleImage}>
-          {isLoading && 
-            <Image src="/img/magiCircle_active.png" alt="" width={800} height={600} className={styles.magicCircleImageActive}/>
+          {
+            isLoading && <Image src="/img/magiCircle_active.png" alt="" width={800} height={600} className={`${styles.magicCircleImageActive} ${isGenerated && styles.isGenerated}`}/>
           }
           <Image src="/img/magiCircle_base.png" alt="" width={800} height={600} />
         </div>
 
         <div className={styles.imageContainer}>
           {
-            isLoading ? <Loading/> :
-            monsterImg && 
+            monsterImg && !isLoading &&
             <>
               <div className={styles.monsterMeta}>
-                <p>特徴: <span className={styles.monsterText}>{formData.description}</span></p>
-                <p>属性: <span className={styles.monsterText}>{formData.hiddenAttributeJp}</span></p>
-                <p>タイプ: <span className={styles.monsterText}>{formData.type === 'human' ? '人型':'動物型'}</span></p>
+                <dl>
+                  <dt>特徴</dt>
+                  <dd>{formData.description}</dd>
+                </dl>
+                <dl>
+                  <dt>属性</dt>
+                  <dd>{formData.hiddenAttributeJp}</dd>
+                </dl>
+                <dl>
+                  <dt>タイプ</dt>
+                  <dd>{ 
+                    (() => {
+                      switch (formData.type) {
+                        case 'Humanoid':
+                          return '人型';
+                        case 'Animal':
+                          return '動物型';
+                        case 'Mechanical':
+                          return '機械型';
+                        case 'Plant':
+                          return '植物型';  
+                      }
+                    })()
+                  }</dd>
+                </dl>
+                <dl>
+                  <dt>スタイル</dt>
+                  <dd>{ 
+                    (() => {
+                      switch (formData.style) {
+                        case 'Anime':
+                          return 'アニメ風';
+                        case 'Realistic':
+                          return 'リアル';
+                        case 'Semi-realistic':
+                          return 'リアル&アニメ風';
+                      }
+                    })()
+                  }</dd>
+                </dl>
               </div>
-              <button onClick={handleSnsShare} className={styles.shareButton}>Xに投稿する</button>
+
+              <div className={styles.resultButtonGroup}>
+
+                <ButtonShare 
+                  text="Xでシェア" 
+                  className="share" 
+                  iconProps={{
+                    icon: IconShare,
+                    className: "size-6 text-white"
+                  }}  
+                  onClick={handleSnsShare}
+                />
+
+                <Button 
+                  text="ダウンロード" 
+                  className="download" 
+                  iconProps={{
+                    icon: IconDownload,
+                    className: "size-6 text-white"
+                  }} 
+                  href={monsterImg} 
+                  download={`a1-monster-creator-${new Date().getTime()}.png`}
+                />
+
+              </div>
+
             </>
           }
+
         </div>
-        
-    </div>
-    
         <MonsterFormDetail 
           onSubmit={handleFormSubmit} 
           isLoading={isLoading}
           isGenerated={!!monsterImg}
         />
+    </div>
+    
+
     
     
     </>

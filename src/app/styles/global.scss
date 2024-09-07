@@ -28,9 +28,9 @@ body {
     content: '';
     background: url(/img/siteBG.jpg) no-repeat center center/cover;
     z-index: -1;
-    /* animation: fadeInOpacity 2s 1s ease-in-out forwards; */
-    opacity: 0.4;
-    
+    animation: fadeInOpacity 2s 1s ease-in-out forwards;
+    opacity: 0.5;
+    transition: opacity 0.5s ease-in-out;
   }
   
   &::after {
@@ -39,9 +39,23 @@ body {
     z-index: -2;
   }
 
+  &.isTop {
+    &::before {
+      animation: none;
+      /* animation: fadeInOpacity 2s 1s ease-in-out forwards; */
+      opacity: 0.4;
+    }
+  }
+  &.isCreate {
+    &::before {
+      animation: none;
+      opacity: 0.2;
+    }
+  }
   &.isUnderPage {
     &::before {
-      opacity: 0.2;
+      animation: none;
+      opacity: 0.4;
     }
   }
 }
@@ -55,11 +69,11 @@ main {
     scale: 1.5;
     rotate: 10deg;
   }
-  50% {
+  /* 50% {
     opacity: 0.5;
     scale: 1.2;
     rotate: -5deg;
-  }
+  } */
   100% {
     opacity: 0.4;
     scale: 1;
