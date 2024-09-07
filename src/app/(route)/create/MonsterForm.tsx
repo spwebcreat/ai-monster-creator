@@ -42,20 +42,28 @@ const MonsterForm = () => {
       createdAt: new Date().toISOString()
     };
 
-    await fetch('/api/monsters', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newMonster),
-    });
+    try {
+      const response = await fetch('/api/monsters', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newMonster),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const result = await response.json();
+      console.log('Monster saved:', result);
+    } catch (error) {
+      console.error('Error saving monster:', error);
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false);
+        setIsGenerated(true);
+      }, 2000);
+    }
 
-    
-
-    setTimeout(() => {
-      setIsLoading(false);
-      setIsGenerated(true);
-    }, 2000);
   };
 
   const handleSnsShare = () => {

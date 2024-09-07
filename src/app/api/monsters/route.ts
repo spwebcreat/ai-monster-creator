@@ -6,6 +6,7 @@ export async function POST(request: Request) {
   try {
     const monster: Monster = await request.json();
     const key = `monster:${monster.id}`;
+    console.log('Received monster data:', monster);
     
     // モンスターデータを保存
     await kv.set(key, JSON.stringify(monster));
@@ -16,7 +17,18 @@ export async function POST(request: Request) {
     // 最新の5件のみを保持
     await kv.zremrangebyrank('recent_monsters', 0, -6);
 
-    return NextResponse.json({ message: 'Monster saved successfully' }, { status: 201 });
+    return NextResponse.json(
+      { message: 'Monster saved successfully' },
+      { 
+        status: 201,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      }
+    );
+
   } catch (error) {
     console.error('Error saving monster:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -26,7 +38,7 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     const keys = await kv.zrange('recent_monsters', 0, 4, { rev: true });
-    
+    console.log('Retrieved keys:', keys);
     if (!keys || keys.length === 0) {
       return NextResponse.json([]);
     }
