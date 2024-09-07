@@ -89,7 +89,8 @@ main {
 }
 
 .globalConatiner {
-  width: 100%;
+  width: min(1000px, 100%);
+  margin-inline: auto;
   > * + * {
     margin-top: 3.5em;
   }

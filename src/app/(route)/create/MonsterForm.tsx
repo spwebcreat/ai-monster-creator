@@ -3,11 +3,12 @@
 import styles from './Create.module.scss'
 import Image from 'next/image'
 import { ButtonShare , Button } from '@/app/components/Button'
-import Loading from "@/app/loading"
 import { fetchMonsterImg } from "@/app/lib/getImgApi";
 import React, { useEffect, useState } from "react";
 import MonsterFormDetail from './MonsterFormDetail'
 import { IconShare,IconDownload } from '@/app/components/Icons'
+import { v4 as uuidv4 } from 'uuid';
+import { Monster } from '@/app/types/index';
 
 const MonsterForm = () => {
 
@@ -30,6 +31,27 @@ const MonsterForm = () => {
     setFormData({ description, attribute, hiddenAttributeJp, type, style });
     const imageUrl : string = await fetchMonsterImg({ description, attribute, type, style });
     setMonsterImg(imageUrl);
+
+    const newMonster: Monster = {
+      id: uuidv4(),
+      imageUrl,
+      description,
+      attribute: hiddenAttributeJp,
+      type,
+      style,
+      createdAt: new Date().toISOString()
+    };
+
+    await fetch('/api/monsters', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newMonster),
+    });
+
+    
+
     setTimeout(() => {
       setIsLoading(false);
       setIsGenerated(true);

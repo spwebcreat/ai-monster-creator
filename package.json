@@ -12,17 +12,20 @@
   "dependencies": {
     "@coreui/icons": "^3.0.1",
     "@heroicons/react": "^2.1.5",
+    "@vercel/kv": "^2.0.0",
     "axios": "^1.7.7",
     "framer-motion": "^11.5.4",
     "next": "14.2.7",
     "react": "^18",
     "react-dom": "^18",
-    "react-loading": "^2.0.3"
+    "react-loading": "^2.0.3",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/uuid": "^10.0.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.7",
     "postcss": "^8.4.45",

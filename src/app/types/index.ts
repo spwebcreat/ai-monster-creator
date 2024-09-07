@@ -11,3 +11,15 @@ export interface MonsterFormProps {
   isLoading: boolean;
   isGenerated: boolean;
 }
+
+
+
+export interface Monster {
+  id: string;
+  imageUrl: string;
+  description: string;
+  attribute: string;
+  type: string;
+  style: string;
+  createdAt: string;
+}
