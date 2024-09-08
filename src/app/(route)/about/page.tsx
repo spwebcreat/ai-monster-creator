@@ -10,7 +10,6 @@ function About() {
         <div className="globalTitle">
           <h2 className="globalTitleText">このサイトについて</h2>
 
-
         </div>
 
         <div className="globalField">
