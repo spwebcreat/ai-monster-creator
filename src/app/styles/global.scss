@@ -61,7 +61,8 @@ body {
   }
 }
 main {
-  @apply w-[100%]  text-white py-40;
+  @apply w-[100%]  text-white py-10;
+  @apply md:py-40;
 }
 
 @keyframes fadeInOpacity {
@@ -70,11 +71,6 @@ main {
     scale: 1.5;
     rotate: 10deg;
   }
-  /* 50% {
-    opacity: 0.5;
-    scale: 1.2;
-    rotate: -5deg;
-  } */
   100% {
     opacity: 0.4;
     scale: 1;
@@ -91,9 +87,9 @@ main {
 
 .global {
   &Conatiner {
-    @apply w-full max-w-[1000px] mx-auto;
+    @apply w-full max-w-[1000px] mx-auto  px-10 md:px-0;
     > * + * {
-      @apply mt-20;
+      @apply mt-10;
     }
   }
 
@@ -119,7 +115,7 @@ main {
 }
 
 .attentionText {
-  @apply text-center text-lg bg-primary p-4 text-white font-bold;
+  @apply text-center bg-primary p-4 text-white font-bold text-sm;
   opacity: 0;
   pointer-events: none;
   animation: fadeInOpacity .25s 3s ease-in-out forwards;
@@ -141,6 +137,7 @@ main {
     @apply mt-5;
   }
 }
+
 .profileHeader {
   @apply flex items-center gap-5;
 

@@ -1,7 +1,7 @@
 
 
 .imageList {
-  @apply flex justify-center w-[max-content] gap-5 md:w-[90%] mx-auto;
+  @apply flex justify-center w-[max-content] gap-5 md:w-[100%] mx-auto md:px-5;
 
   &Wrap {
     overflow-x:scroll;
@@ -11,6 +11,10 @@
     @apply text-center text-2xl font-bold mb-5;
   }
   &Item {
+    @apply w-[300px];
+    img {
+      @apply w-[100%] object-cover;
+    }
     ul {
       @apply text-sm;
     }

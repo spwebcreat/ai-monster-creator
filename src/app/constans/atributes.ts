@@ -19,7 +19,7 @@ export const MONSTER_ATTRIBUTES = [
   { ja: '光', en: 'Light' },
   { ja: '闇', en: 'Dark' },
   { ja: '時空', en: 'Cosmic' },
-  { ja: '変異', en: 'Mutant' }
+  { ja: '妖精', en: 'Fairy' }
 ];
 
 
@@ -27,7 +27,7 @@ export const MONSTER_TYPES = [
   { ja: '人型', en: 'Humanoid' },
   { ja: '動物', en: 'Animal' },
   { ja: '機械', en: 'Mechanical' },
-  { ja: '植物', en: 'Plant' },
+  // { ja: '植物', en: 'Plant' },
 ];
 
 

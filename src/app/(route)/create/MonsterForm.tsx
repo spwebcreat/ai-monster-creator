@@ -121,14 +121,14 @@ const MonsterForm = () => {
         <div className={`${styles.monsterCard} ${isLoading && styles.isLoading} ${monsterImg && styles.createdImg}`}>
 
         {monsterImg && monsterImg !== '' && !isLoading && (
-              <Image 
-                src={monsterImg} 
-                alt="生成されたモンスター画像" 
-                width={800} 
-                height={800} 
-              className={styles.monsterImage}
-            />
-          )}
+          <Image 
+            src={monsterImg} 
+            alt="生成されたモンスター画像" 
+            width={800} 
+            height={800} 
+            className={styles.monsterImage}
+          />
+        )}
 
         </div>
 

@@ -28,21 +28,29 @@ const Home = async () => {
   return (
     <>
       <div className="globalConatiner">
-
+        <div className={styles.imageListTitle}>
+          <h2> 👾 最近生成されたモンスター </h2>
+        </div>
         <div className={styles.imageListWrap}>
-          <div className={styles.imageListTitle}>
-            <h2> 👾 最近生成されたモンスター </h2>
-          </div>
+          
           <div className={styles.imageList}>
             { monsters && monsters.map((monster) => {
               return (
                 <div className={styles.imageListItem} key={monster.id}>
-                  <Image src={monster.imageUrl} alt={monster.description} width={195} height={195} />
+                  <Image src={monster.imageUrl} alt={monster.description} width={300} height={300} />
                   <div className={styles.imageItemTitle}>
                     <ul>
                       <li>属性: {monster.attribute}</li>
-                      <li>タイプ: {monster.type}</li>
-                      <li>スタイル: {monster.style}</li>
+                      <li>タイプ: {
+                          monster.type == 'Humanoid' ? '人型' : 
+                          monster.type == 'Animal' ? '動物型' : 
+                          monster.type == 'Machine' ? '機械' : ''
+                        }</li>
+                      <li>スタイル: {
+                          monster.style == 'Realistic' ? 'リアル' :
+                          monster.style == 'Anime' ? 'アニメ風' :
+                          monster.style == 'Semi-realistic' ? 'リアル&アニメ' : ''
+                        }</li>
                     </ul>
                 </div>
               </div>
