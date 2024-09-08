@@ -134,9 +134,9 @@ const MonsterForm = () => {
 
         <div className={styles.magicCircleImage}>
           {
-            isLoading && <Image src="/img/magiCircle_active.png" alt="" width={800} height={600} className={`${styles.magicCircleImageActive} ${isGenerated && styles.isGenerated}`}/>
+            isLoading && <Image src="/img/magiCircle_active.png" alt="魔法陣アクティブ" width={800} height={600} className={`${styles.magicCircleImageActive} ${isGenerated && styles.isGenerated}`}/>
           }
-          <Image src="/img/magiCircle_base.png" alt="" width={800} height={600} />
+          <Image src="/img/magiCircle_base.png" alt="魔法陣" width={800} height={600} />
         </div>
 
         <div className={styles.imageContainer}>
