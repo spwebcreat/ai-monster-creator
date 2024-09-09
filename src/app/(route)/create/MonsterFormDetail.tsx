@@ -20,15 +20,11 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit(description, attribute, hiddenAttributeJp,type,style);
-
     // ページ上部までスクロール
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
     });
-    // setDescription("");
-    // setAttribute("");
-    // setHiddenAttributeJp("");
   }
   useEffect(() => {
     setHiddenAttributeJp(MONSTER_ATTRIBUTES.find(attr => attr.en === attribute)?.ja || "");

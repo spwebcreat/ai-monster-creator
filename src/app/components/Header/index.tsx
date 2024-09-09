@@ -6,11 +6,8 @@ import Link from 'next/link'
 const Header = () => {
   return (
     <header className={styles.header}>
-      <Link href="/">
-        <picture>
-          <source srcSet="/img/logo-sp.png" media="(max-width:768px)" />
-          <Image src="/img/logo.png" alt="AI MONSTER CREATOR" width={1200} height={265} />
-        </picture>
+      <Link href="/" className={styles.logo}>
+        <Image src="/img/logo.png" alt="AI MONSTER CREATOR" width={1200} height={265} />
       </Link>
     </header>
   )

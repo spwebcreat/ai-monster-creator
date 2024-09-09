@@ -3,25 +3,9 @@ import styles from './page.module.scss'
 import Image from 'next/image'
 import  Button from '@/app/components/Button'
 import { Monster } from '@/app/types/index'
+import { getMonsters } from '@/app/api/monsters/route'
+import MonstersDisplay from '@/app/components/MonsterDisplay'
 
-
-async function getMonsters() {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/monsters`, { cache: 'no-store' });
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    const data = await res.json();
-    // データ構造のチェックを追加
-    if (!data || !Array.isArray(data.monsters)) {
-      throw new Error('Invalid data format');
-    }
-    return { monsters: data.monsters as Monster[], todayCount: data.todayCount as number };
-  } catch (error) {
-    console.error('Failed to fetch monsters:', error);
-    return { monsters: [], todayCount: 0 }; // エラーが発生した場合は空の配列を返す
-  }
-}
 
 const Home = async () => {
   const { monsters, todayCount } = await getMonsters();
@@ -34,28 +18,7 @@ const Home = async () => {
         <div className={styles.imageListWrap}>
           
           <div className={styles.imageList}>
-            { monsters && monsters.map((monster) => {
-              return (
-                <div className={styles.imageListItem} key={monster.id}>
-                  <Image src={monster.imageUrl} alt={monster.description} width={300} height={300} />
-                  <div className={styles.imageItemTitle}>
-                    <ul>
-                      <li>属性: {monster.attribute}</li>
-                      <li>タイプ: {
-                          monster.type == 'Humanoid' ? '人型' : 
-                          monster.type == 'Animal' ? '動物型' : 
-                          monster.type == 'Machine' ? '機械' : ''
-                        }</li>
-                      <li>スタイル: {
-                          monster.style == 'Realistic' ? 'リアル' :
-                          monster.style == 'Anime' ? 'アニメ風' :
-                          monster.style == 'Semi-realistic' ? 'リアル&アニメ' : ''
-                        }</li>
-                    </ul>
-                </div>
-              </div>
-              )
-            })}
+            <MonstersDisplay kvMonsters={monsters} />
           </div>
         </div>
 

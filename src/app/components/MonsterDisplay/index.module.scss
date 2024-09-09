@@ -1,0 +1,19 @@
+.imageList {
+
+  &Wrap {
+    overflow-x:scroll;
+    max-width: 100%;
+  }
+  &Title {
+    @apply text-center text-2xl font-bold mb-5;
+  }
+  &Item {
+    @apply w-[300px];
+    img {
+      @apply w-[100%] object-cover;
+    }
+    ul {
+      @apply text-sm;
+    }
+  }
+}

@@ -9,6 +9,7 @@ import MonsterFormDetail from './MonsterFormDetail'
 import { IconShare,IconDownload } from '@/app/components/Icons'
 import { v4 as uuidv4 } from 'uuid';
 import { Monster } from '@/app/types/index';
+import { useRouter } from 'next/navigation';
 
 const MonsterForm = () => {
 
@@ -17,15 +18,21 @@ const MonsterForm = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isGenerated, setIsGenerated] = useState<boolean>(false);
   const [isClient, setIsClient] = useState(false);
-  const [todayCount, setTodayCount] = useState();
+  const [todayCount, setTodayCount] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
+  const [isKvLimitReached, setIsKvLimitReached] = useState(false);
+  const router = useRouter();
   useEffect(() => {
     setIsClient(true);
     const fetchTodayCount = async () => {
-      const countResponse = await fetch('/api/monsters');
-      const { todayCount } = await countResponse.json();
-      setTodayCount(todayCount);
+      try {
+        const countResponse = await fetch('/api/monsters');
+        const { todayCount } = await countResponse.json();
+        setTodayCount(todayCount);
+      } catch (error) {
+        console.error('Error fetching today count:', error);
+        setErrorMessage('今日の生成回数の取得に失敗しました。');
+      }
     };
 
     fetchTodayCount();
@@ -35,10 +42,11 @@ const MonsterForm = () => {
 
 
   const handleFormSubmit = async (description:string,attribute:string, hiddenAttributeJp:string,type:string,style:string) => {
+
     setErrorMessage(null);
-    const countResponse = await fetch('/api/monsters');
-    const { todayCount } = await countResponse.json();
-    setTodayCount(todayCount);
+    setIsKvLimitReached(false);
+
+
     if (todayCount >= 100) { // 例: 1日の制限を100回に設定
       setErrorMessage('本日の生成限度に達しました。明日またお試しください。');
       return;
@@ -48,9 +56,12 @@ const MonsterForm = () => {
     setIsGenerated(false);
     setFormData({ description, attribute, hiddenAttributeJp, type, style });
 
+    let newMonster: Monster | null = null;
+
     try {
       // GetImg.ai APIから画像URLを取得
       const tempImageUrl: string = await fetchMonsterImg({ description, attribute, type, style });
+      
 
       // Vercel Blobに画像を保存
       const saveResponse = await fetch('/api/saveImage', {
@@ -59,7 +70,7 @@ const MonsterForm = () => {
         body: JSON.stringify({ imageUrl: tempImageUrl })
       });
 
-      const { url: permanentImageUrl } = await saveResponse.json(); // ここを修正
+      const { url: permanentImageUrl } = await saveResponse.json();
 
       // 永続的なURLをモンスターデータに設定
       const newMonster: Monster = {
@@ -71,26 +82,38 @@ const MonsterForm = () => {
         style,
         createdAt: new Date().toISOString()
       };
-
-      // モンスターデータを保存
+  
       const monsterResponse = await fetch('/api/monsters', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newMonster),
       });
-
-      // モンスター画像を表示
-      if(monsterResponse.ok) {
-        setMonsterImg(permanentImageUrl);
-      } else {
-        throw new Error(`モンスター画像の保存に失敗しました: ${monsterResponse.status}`);
+  
+      if (monsterResponse.status === 429) {
+        // KVの制限に達した場合
+        setIsKvLimitReached(true);
+        const localMonsters = JSON.parse(localStorage.getItem('localMonsters') || '[]');
+        localMonsters.unshift(newMonster);
+        localStorage.setItem('localMonsters', JSON.stringify(localMonsters.slice(0, 5)));
+      } else if (!monsterResponse.ok) {
+        throw new Error(`HTTP error! status: ${monsterResponse.status}`);
       }
 
+      setMonsterImg(permanentImageUrl);
+      setTodayCount(prevCount => prevCount + 1);
+
+
     } catch(error) {
-      console.error('モンスター画像の保存に失敗しました:', error);
-      setErrorMessage('モンスター画像の保存に失敗しました。');
+      console.error('エラーが発生しました:', error);
+      setErrorMessage('モンスターの生成中にエラーが発生しました。');
+      setIsKvLimitReached(true);
+      
+      // ローカルストレージに保存
+      if (newMonster) { 
+        const localMonsters = JSON.parse(localStorage.getItem('localMonsters') || '[]');
+        localMonsters.push(newMonster);
+        localStorage.setItem('localMonsters', JSON.stringify(localMonsters));
+      }
 
     } finally {
       setTimeout(() => {
@@ -215,13 +238,19 @@ const MonsterForm = () => {
           }
 
         </div>
+
         <MonsterFormDetail 
           onSubmit={handleFormSubmit} 
           isLoading={isLoading}
           isGenerated={!!monsterImg}
         />
+        {isKvLimitReached && (
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 my-4" role="alert">
+            <p>データベースの制限に達しました。モンスターの生成は可能ですが、一部の機能が制限されます。</p>
+          </div>
+        )}
         { errorMessage && <p className="text-center mt-4">{errorMessage}</p>}
-        { todayCount && <p className="text-center mt-4">今日の生成回数: {todayCount}</p>}
+        { todayCount ? <p className="text-center mt-4">今日の生成回数: {todayCount}</p> : null}
     </div>
     
 

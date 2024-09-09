@@ -1,4 +1,8 @@
 .header {
   @apply w-fit mx-auto md:max-w-[80%] pt-10 px-10;
-  @apply md:pt-40 md:px-20;
+  @apply md:pt-20 md:px-20;
+
+  .logo {
+    @apply max-w-[min(900px,100%)] block mx-auto;
+  }
 }
