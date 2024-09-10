@@ -8,6 +8,11 @@
     @apply md:py-0;
   }
 
+  .GeneratedImage {
+    @apply absolute bottom-0 pointer-events-none;
+    animation : fadeIn 1s forwards, hueRotate 5s 1s infinite;
+  }
+
   .magicCircleImageActive {
     @apply absolute bottom-10 opacity-0;
     @apply md:bottom-0 md:top-10;
@@ -223,5 +228,15 @@
   }
   100% {
     opacity: 0.5;
+  }
+}
+
+
+@keyframes hueRotate {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  100% {
+    filter: hue-rotate(360deg);
   }
 }

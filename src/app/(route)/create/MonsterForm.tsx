@@ -34,7 +34,6 @@ const MonsterForm = () => {
         setErrorMessage('今日の生成回数の取得に失敗しました。');
       }
     };
-
     fetchTodayCount();
   }, []);
 
@@ -46,7 +45,6 @@ const MonsterForm = () => {
     setErrorMessage(null);
     setIsKvLimitReached(false);
 
-
     if (todayCount >= 100) { // 例: 1日の制限を100回に設定
       setErrorMessage('本日の生成限度に達しました。明日またお試しください。');
       return;
@@ -56,23 +54,23 @@ const MonsterForm = () => {
     setIsGenerated(false);
     setFormData({ description, attribute, hiddenAttributeJp, type, style });
 
-    let newMonster: Monster | null = null;
 
     try {
-      // GetImg.ai APIから画像URLを取得
       const tempImageUrl: string = await fetchMonsterImg({ description, attribute, type, style });
       
-
-      // Vercel Blobに画像を保存
       const saveResponse = await fetch('/api/saveImage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageUrl: tempImageUrl })
       });
-
+  
+      if (!saveResponse.ok) {
+        const errorData = await saveResponse.json();
+        throw new Error(`Failed to save image: ${errorData.error}`);
+      }
+  
       const { url: permanentImageUrl } = await saveResponse.json();
-
-      // 永続的なURLをモンスターデータに設定
+  
       const newMonster: Monster = {
         id: uuidv4(),
         imageUrl: permanentImageUrl || '',
@@ -97,23 +95,17 @@ const MonsterForm = () => {
         localStorage.setItem('localMonsters', JSON.stringify(localMonsters.slice(0, 5)));
       } else if (!monsterResponse.ok) {
         throw new Error(`HTTP error! status: ${monsterResponse.status}`);
+      } else {
+        setIsKvLimitReached(false);
       }
-
+  
       setMonsterImg(permanentImageUrl);
       setTodayCount(prevCount => prevCount + 1);
-
-
+  
     } catch(error) {
       console.error('エラーが発生しました:', error);
       setErrorMessage('モンスターの生成中にエラーが発生しました。');
       setIsKvLimitReached(true);
-      
-      // ローカルストレージに保存
-      if (newMonster) { 
-        const localMonsters = JSON.parse(localStorage.getItem('localMonsters') || '[]');
-        localMonsters.push(newMonster);
-        localStorage.setItem('localMonsters', JSON.stringify(localMonsters));
-      }
 
     } finally {
       setTimeout(() => {
@@ -156,9 +148,8 @@ const MonsterForm = () => {
         </div>
 
         <div className={styles.magicCircleImage}>
-          {
-            isLoading && <Image src="/img/magiCircle_active.png" alt="魔法陣アクティブ" width={800} height={600} className={`${styles.magicCircleImageActive} ${isGenerated && styles.isGenerated}`}/>
-          }
+          {isLoading && <Image src="/img/magiCircle_active.png" alt="魔法陣アクティブ" width={800} height={600} className={`${styles.magicCircleImageActive} ${isGenerated && styles.isGenerated}`}/>}
+          { isGenerated && <Image src="/img/magiCircle_ganerated.png" alt="魔法陣" className={styles.GeneratedImage} width={800} height={600} />}
           <Image src="/img/magiCircle_base.png" alt="魔法陣" width={800} height={600} />
         </div>
 

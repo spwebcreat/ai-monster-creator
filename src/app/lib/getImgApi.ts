@@ -26,6 +26,9 @@ const fetchMonsterImg = async ({
       - Human-like face with expressive features, but with subtle ${attribute}-related modifications.
       - Hands and feet resembling human ones, possibly with slight alterations related to its ${attribute}.
       - Body proportions similar to humans, but with fantastical elements integrated.
+      - If described as female (woman or girl):
+        - Ensure the clothing is tasteful and not overly revealing.
+        - Consider cultural and contextual appropriateness in the clothing design.
       - Clothing or armor that enhances its ${attribute} abilities while maintaining a humanoid silhouette.`;
     } else if (type === 'Animal') {
       basePrompt = `A fantastical animal-like creature with non-humanoid features. 
@@ -96,10 +99,15 @@ const fetchMonsterImg = async ({
     
     try {
       const response = await axios.request(options);
-      return response.data.url || '';
+      if (response.data && response.data.url) {
+        return response.data.url;
+      } else {
+        console.error('Invalid response from GetImg.ai API:', response.data);
+        throw new Error('Invalid response from GetImg.ai API');
+      }
     } catch (error) {
-        console.error("画像生成に失敗しました", error);
-        return '';
+      console.error("画像生成に失敗しました", error);
+      throw error;
     }
 
 }
