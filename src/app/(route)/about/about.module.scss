@@ -1,0 +1,12 @@
+.profileTable {
+  th,td {
+    @apply p-2;
+
+  }
+  tr {
+    &:not(:last-child) {
+      @apply border-b border-gray-600;
+    }
+  }
+
+}

@@ -3,12 +3,14 @@
   &Wrap {
     overflow-x:scroll;
     max-width: 100%;
+    scroll-snap-type: x mandatory;
   }
   &Title {
     @apply text-center text-2xl font-bold mb-5;
   }
   &Item {
-    @apply w-[300px];
+    @apply w-[180px];
+    scroll-snap-align: start;
     img {
       @apply w-[100%] object-cover;
     }

@@ -21,6 +21,7 @@ body {
   overflow-x: hidden;
   min-height: 100vh;
   font-feature-settings: "palt";
+  font-size: 16px;
   &::before ,
   &::after {
     @apply fixed inset-0 w-full h-full;
@@ -98,7 +99,8 @@ main {
   }
 
   &Field {
-    @apply w-[min(100%,750px)] mx-auto text-lg;
+    @apply w-[min(100%,750px)] px-5 mx-auto text-lg text-[.9rem] md:text-[1rem];
+    @apply md:px-0;
     line-height: 2;
     > * + * {
       @apply mt-5;

@@ -9,7 +9,8 @@
   }
 
   .GeneratedImage {
-    @apply absolute bottom-0 pointer-events-none;
+    @apply absolute bottom-16 pointer-events-none;
+    @apply md:bottom-0;
     animation : fadeIn 1s forwards, hueRotate 5s 1s infinite;
   }
 
@@ -27,7 +28,8 @@
 .monster {
 
   &Card {
-    @apply absolute aspect-[1/1] w-[max(150px,35%)] mx-auto left-1/2 z-0 top-10;
+    @apply absolute aspect-[1/1] w-[max(150px,50%)] mx-auto left-1/2 z-0 top-10;
+    @apply md:w-[max(150px,40%)];
     transition: all 0.5s;
     translate: -50% 0;
     animation : fuwafuwa 2s infinite ; // , horizontalSpin 3s infinite

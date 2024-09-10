@@ -1,7 +1,6 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import React from 'react'
-
+import styles from './about.module.scss'
 function About() {
   return (
     <>
@@ -72,11 +71,13 @@ function About() {
             </div>
             
             <div className="profileBody">
-              <table>
+              <table className={styles.profileTable}>
                 <tbody>
                   <tr>
                     <td>名称</td>
-                    <td>SP WEB CREAT. （エスピーウェブクリエイト）</td>
+                    <td>
+                      SP WEB CREAT. <br />（エスピーウェブクリエイト）
+                    </td>
                   </tr>
                   <tr>
                     <td>所在地</td>
@@ -88,7 +89,11 @@ function About() {
                   </tr>
                   <tr>
                     <td>WEBサイト</td>
-                    <td><a href="https://www.sp-webcreat.pro/" target="_blank">https://www.sp-webcreat.pro/</a></td>
+                    <td>
+                      <a href="https://www.sp-webcreat.pro/" target="_blank">
+                        https://www.sp-webcreat.pro/
+                      </a>
+                    </td>
                   </tr>
                   <tr>
                     <td>Email</td>
