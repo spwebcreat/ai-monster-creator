@@ -1,7 +1,7 @@
 'use client'
 
 import { ButtonSubmit } from '@/app/components/Button'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { MONSTER_ATTRIBUTES, MONSTER_TYPES, MONSTER_STYLES } from '@/app/constans/atributes'
 import styles from './Create.module.scss'
 import type { MonsterFormProps } from '@/app/types'
@@ -15,21 +15,37 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
   const [type, setType] = useState("");
   const [style, setStyle] = useState("");
   const [hiddenAttributeJp, setHiddenAttributeJp] = useState("");
-
+  const [shouldScroll, setShouldScroll] = useState(false);
   
+  const scrollToTop = useCallback(() => {
+    const headerHeight = document.querySelector('header')?.offsetHeight || 0;
+    window.scrollTo({
+      top: headerHeight,
+      behavior: 'smooth'
+    });
+  }, []);
+
+  useEffect(() => {
+    if (shouldScroll) {
+      const timer = setTimeout(() => {
+        scrollToTop();
+        setShouldScroll(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldScroll, scrollToTop]);
+
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit(description, attribute, hiddenAttributeJp,type,style);
-    // ページ上部までスクロール
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    setShouldScroll(true);
+
   }
+
   useEffect(() => {
     setHiddenAttributeJp(MONSTER_ATTRIBUTES.find(attr => attr.en === attribute)?.ja || "");
   }, [attribute]);
-
 
   return (
     <>

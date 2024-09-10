@@ -3,8 +3,10 @@ import styles from './page.module.scss'
 import  Button from '@/app/components/Button'
 import MonstersDisplay from '@/app/components/MonsterDisplay'
 import { getMonsters } from '@/app/lib/getMonsters'
+import { unstable_noStore as noStore } from 'next/cache';
 
 const Home = async () => {
+  noStore();
   const { monsters, todayCount } = await getMonsters();
   return (
     <>
@@ -13,10 +15,7 @@ const Home = async () => {
           <h2> 👾 最近生成されたモンスター </h2>
         </div>
         <div className={styles.imageListWrap}>
-          
-          <div className={styles.imageList}>
-            <MonstersDisplay kvMonsters={monsters} />
-          </div>
+          <MonstersDisplay initialMonsters={monsters} />
         </div>
 
         <div className={`w-[80%] md:w-[50%] mx-auto grid gap-4`}>

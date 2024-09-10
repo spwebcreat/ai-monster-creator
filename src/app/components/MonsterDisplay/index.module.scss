@@ -1,5 +1,5 @@
 .imageList {
-
+  @apply flex justify-center w-[max-content] gap-5 md:w-[100%] mx-auto md:px-5;
   &Wrap {
     overflow-x:scroll;
     max-width: 100%;
@@ -17,5 +17,12 @@
     ul {
       @apply text-sm;
     }
+  }
+}
+
+.updateButton {
+  @apply bg-cyan-600 text-white text-[12px] px-5 py-2 font-bold rounded-md;
+  &Wrap {
+    @apply w-fit  mx-auto mb-5;
   }
 }

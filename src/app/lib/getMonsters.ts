@@ -1,6 +1,8 @@
 import { Monster } from '@/app/types/index'
+import { unstable_noStore as noStore } from 'next/cache';
 
 export async function getMonsters() {
+  noStore();
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/monsters`, { cache: 'no-store' });
     if (!res.ok) {

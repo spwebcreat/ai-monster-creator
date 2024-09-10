@@ -39,7 +39,7 @@ const MonsterForm = () => {
 
   if (!isClient) return null;
 
-
+  
   const handleFormSubmit = async (description:string,attribute:string, hiddenAttributeJp:string,type:string,style:string) => {
 
     setErrorMessage(null);
@@ -135,21 +135,21 @@ const MonsterForm = () => {
         
         <div className={`${styles.monsterCard} ${isLoading && styles.isLoading} ${monsterImg && styles.createdImg}`}>
 
-        {monsterImg && monsterImg !== '' && !isLoading && (
-          <Image 
-            src={monsterImg} 
-            alt="生成されたモンスター画像" 
-            width={800} 
-            height={800} 
-            className={styles.monsterImage}
-          />
-        )}
+          {monsterImg && monsterImg !== '' && !isLoading && (
+            <Image 
+              src={monsterImg} 
+              alt={`${formData.description}のモンスター画像`}
+              width={800} 
+              height={800} 
+              className={styles.monsterImage}
+            />
+          )}
 
         </div>
 
         <div className={styles.magicCircleImage}>
-          {isLoading && <Image src="/img/magiCircle_active.png" alt="魔法陣アクティブ" width={800} height={600} className={`${styles.magicCircleImageActive} ${isGenerated && styles.isGenerated}`}/>}
-          { isGenerated && <Image src="/img/magiCircle_ganerated.png" alt="魔法陣" className={styles.GeneratedImage} width={800} height={600} />}
+          {isLoading && <Image src="/img/magiCircle_ganerated.png" alt="魔法陣" className={styles.GeneratedImage} width={800} height={600} />}
+          { isGenerated && <Image src="/img/magiCircle_active.png" alt="魔法陣アクティブ" width={800} height={600} className={styles.magicCircleImageActive} /> }
           <Image src="/img/magiCircle_base.png" alt="魔法陣" width={800} height={600} />
         </div>
 
