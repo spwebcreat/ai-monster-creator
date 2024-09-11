@@ -41,7 +41,7 @@ const MonstersDisplay = ({ initialMonsters }: { initialMonsters: Monster[] }) =>
       <div className={styles.imageList}>
         {monsters.map((monster) => (
           <div className={styles.imageListItem} key={monster.id}>
-            <Image src={monster.imageUrl} alt={monster.description} width={800} height={800} />
+            <Image src={monster.imageUrl} alt={monster.description ? monster.description : '生成されたモンスター'} width={800} height={800} />
             <div className={styles.imageItemTitle}>
               <ul>
                 <li>属性: {monster.attribute}</li>

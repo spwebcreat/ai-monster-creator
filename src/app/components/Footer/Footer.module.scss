@@ -4,7 +4,7 @@
   @apply w-full pb-36;
 
   &Inner {
-    @apply grid gap-4 w-[80%] mx-auto lg:flex lg:items-center lg:justify-center md:w-[50%];
+    @apply grid gap-4 max-w-[80%] mx-auto lg:flex lg:items-center lg:justify-center md:w-[min(750px,80%)];
   }
 
   .address {
