@@ -9,7 +9,6 @@ export const MONSTER_ATTRIBUTES = [
   { ja: '大地', en: 'Earth' },
   { ja: '風', en: 'Wind' },
   { ja: '精神', en: 'Psychic' },
-  // { ja: '虫', en: 'Insect' },
   { ja: '岩石', en: 'Rock' },
   { ja: '霊魂', en: 'Spirit' },
   { ja: 'ドラゴン', en: 'Dragon' },
@@ -27,7 +26,6 @@ export const MONSTER_TYPES = [
   { ja: '人型', en: 'Humanoid' },
   { ja: '動物', en: 'Animal' },
   { ja: '機械', en: 'Mechanical' },
-  // { ja: '植物', en: 'Plant' },
 ];
 
 

@@ -49,7 +49,7 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
 
   return (
     <>
-    
+    { isLoading && <div className={styles.loadingText}><Loading />生成中...</div> }
     <form className={styles.form} onSubmit={handleSubmit}>
 
       <div className={styles.formInner}>
@@ -132,18 +132,13 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
             </select>
         </div>
       </div>
-      {isLoading ? (
-        <div className={styles.loadingText}>
-          <Loading />
-          生成中...
-        </div>
-      ) : (
+      {!isLoading &&
         <>
           <div className={styles.submitButtonWrap}>
             <ButtonSubmit text={isGenerated ? "👾 再生成する" : "👾 モンスターを生成する"} className="buttonFull" />
           </div>
         </>
-      )}
+      }
     
     
     </form>

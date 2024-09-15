@@ -17,7 +17,7 @@ const Footer = () => {
 
         <div className={styles.footerInner}>
           <Link href="/create/" className="">
-            <Image src="/img/banner01.png" alt="AI MONSTER CREATOR" width={985} height={377} />
+            <Image src="/img/banner01_240915.png" alt="AI MONSTER CREATOR" width={985} height={377} />
           </Link>
         </div>
       

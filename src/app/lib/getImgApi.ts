@@ -48,14 +48,22 @@ const fetchMonsterImg = async ({
 
     // スタイルに基づいた表現方法を追加
     let stylePrompt = '';
+    const commonStyle = `High-quality render, detailed, sharp focus.`;
+    
     if (style === 'Anime') {
-      stylePrompt = `Anime style: Bold outlines, vibrant colors, expressive eyes, stylized proportions.`;
+      stylePrompt = `${commonStyle} Anime style: 
+      Bold outlines, vibrant colors, large expressive eyes, 
+      (exaggerated expressions, dynamic poses, simplified backgrounds).`;
     } else if (style === 'Realistic') {
-      stylePrompt = `Realistic style: Accurate anatomy, complex textures, realistic lighting and shadows.`;
+      stylePrompt = `${commonStyle} Photorealistic style: 
+      Accurate anatomy, complex textures, realistic lighting and shadows, 
+      (fine details in skin/fur/materials, naturalistic environment).`;
     } else if (style === 'Semi-realistic') {
-      stylePrompt = `Semi-realistic style: Balanced realism and stylization, detailed textures, expressive features.`;
+      stylePrompt = `${commonStyle} Semi-realistic style: 
+      Balanced realism and stylization, detailed textures, expressive features, 
+      (slightly exaggerated proportions, enhanced color palette).`;
     }
-
+    
     // 最終的なプロンプトを組み立てる
     const prompt = `${basePrompt} ${stylePrompt}
     Inspired by ${description}, embodying ${attribute} type.
@@ -64,6 +72,7 @@ const fetchMonsterImg = async ({
     - Subtle environmental effects showcasing ${attribute} powers.
     - Pose and expression convey personality and ${attribute} connection.
     - Original design, unique silhouette.`;
+    
 
     const options = {
       method: 'POST',

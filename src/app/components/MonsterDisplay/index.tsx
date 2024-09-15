@@ -31,11 +31,11 @@ const MonstersDisplay = ({ initialMonsters }: { initialMonsters: Monster[] }) =>
   return (
     <>
       
-        <div className={styles.updateButtonWrap}>
+        {/* <div className={styles.updateButtonWrap}>
           { isLoading ? <Loading /> : (
             <button onClick={fetchMonsters} disabled={isLoading } className={styles.updateButton}>データを更新</button>
           )}
-        </div>
+        </div> */}
       
 
       <div className={styles.imageList}>

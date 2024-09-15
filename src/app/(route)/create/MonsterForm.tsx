@@ -10,6 +10,7 @@ import { IconShare,IconDownload } from '@/app/components/Icons'
 import { v4 as uuidv4 } from 'uuid';
 import { Monster } from '@/app/types/index';
 import { useRouter } from 'next/navigation';
+import { revalidateRoot } from './actions';
 
 const MonsterForm = () => {
 
@@ -108,9 +109,12 @@ const MonsterForm = () => {
       setIsKvLimitReached(true);
 
     } finally {
-      setTimeout(() => {
+      setTimeout( async ()   => {
         setIsLoading(false);
         setIsGenerated(true);
+        setTimeout(async () => {
+          // await revalidateRoot();
+        }, 500);
       }, 2000);
     }
 
