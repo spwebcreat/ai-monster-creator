@@ -55,10 +55,12 @@ export async function POST(request: Request) {
 
           // モンスターの imageUrl を更新
           monster.imageUrl = `/monsters/${fileName}`;
+          // 更新された monster オブジェクトを KV に保存
+          await kv.set(key, JSON.stringify(monster));
 
         } catch (fetchError) {
           console.error('画像の取得に失敗しました:', fetchError);
-          return NextResponse.json({ error: 'Failed to fetch image', monster }, { status: 400 });
+          return NextResponse.json({ error: `Failed to fetch image: ${fetchError}`, monster }, { status: 400 });
         }
         
       }

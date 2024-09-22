@@ -69,7 +69,7 @@ const MonsterForm = () => {
       if (!saveResponse.ok) {
         const errorData = await saveResponse.json();
         throw new Error(`Failed to save image: ${errorData.error}`);
-      }
+      }  
   
       const { url: permanentImageUrl } = await saveResponse.json();
   
@@ -91,7 +91,6 @@ const MonsterForm = () => {
       });
   
       if (monsterResponse.status === 429) {
-        // KVの制限に達した場合
         setIsKvLimitReached(true);
         const localMonsters = JSON.parse(localStorage.getItem('localMonsters') || '[]');
         localMonsters.unshift(newMonster);
@@ -100,16 +99,24 @@ const MonsterForm = () => {
         throw new Error(`HTTP error! status: ${monsterResponse.status}`);
       } else {
         setIsKvLimitReached(false);
+      }  
+
+      if (!monsterResponse.ok) {
+        const errorData = await monsterResponse.json();
+        throw new Error(`HTTP error! status: ${monsterResponse.status}, message: ${errorData.error}`);
       }
+
+      const responseData = await monsterResponse.json();
+      console.log('サーバーレスポンス:', responseData);
+
       console.log('モンスターを生成しました:', newMonster.imageUrl);
       setMonsterImg(newMonster.imageUrl);
       setTodayCount(prevCount => prevCount + 1);
-  
+    
     } catch(error) {
       console.error('エラーが発生しました:', error);
       setErrorMessage('モンスターの生成中にエラーが発生しました。');
       setIsKvLimitReached(true);
-
     } finally {
       setTimeout( async ()   => {
         setIsLoading(false);
