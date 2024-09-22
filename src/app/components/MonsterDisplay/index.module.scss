@@ -1,5 +1,5 @@
 .imageList {
-  @apply flex justify-center w-[max-content] gap-5 md:w-[100%] mx-auto md:px-5;
+  @apply grid grid-cols-[repeat(auto-fit,max(200px))] place-content-center w-[max-content] gap-8 md:w-[100%] mx-auto md:px-5 py-10;
   &Wrap {
     overflow-x:scroll;
     max-width: 100%;
@@ -15,7 +15,10 @@
       @apply w-[100%] object-cover;
     }
     ul {
-      @apply text-sm;
+      @apply text-sm my-2;
+      li {
+        @apply py-1
+      }
     }
   }
 }
@@ -25,4 +28,8 @@
   &Wrap {
     @apply w-fit  mx-auto mb-5;
   }
+}
+
+.downloadButton {
+  @apply bg-primary text-white text-[12px] px-5 py-2 font-bold rounded-md transition-all hover:bg-black;
 }

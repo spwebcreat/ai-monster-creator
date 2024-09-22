@@ -43,7 +43,7 @@ const MonstersDisplay = ({ initialMonsters }: { initialMonsters: Monster[] }) =>
           <div className={styles.imageListItem} key={monster.id}>
             <Image src={monster.imageUrl} alt={monster.description ? monster.description : '生成されたモンスター'} width={800} height={800} />
             <div className={styles.imageItemTitle}>
-              <ul>
+              <ul className="monsterMeatList">
                 <li>属性: {monster.attribute}</li>
                 <li>タイプ: {
                   monster.type === 'Humanoid' ? '人型' : 
@@ -57,6 +57,7 @@ const MonstersDisplay = ({ initialMonsters }: { initialMonsters: Monster[] }) =>
                   monster.style === 'Semi-realistic' ? 'リアル&アニメ' : ''
                 }</li>
               </ul>
+              <a download="monster.png" href={monster.imageUrl} className={styles.downloadButton}>ダウンロード</a>
             </div>
           </div>
         ))}
