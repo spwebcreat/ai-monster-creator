@@ -124,7 +124,7 @@ main {
   @keyframes fadeInOpacity {
     0% {
       opacity: 0;
-      translate: 0 100px;
+      translate: 0 -10px;
     }
     100% {
       opacity: 1;

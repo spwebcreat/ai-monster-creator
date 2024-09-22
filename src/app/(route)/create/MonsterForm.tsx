@@ -22,6 +22,7 @@ const MonsterForm = () => {
   const [todayCount, setTodayCount] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isKvLimitReached, setIsKvLimitReached] = useState(false);
+
   const router = useRouter();
   useEffect(() => {
     setIsClient(true);
@@ -81,7 +82,7 @@ const MonsterForm = () => {
         style,
         createdAt: new Date().toISOString()
       };
-  
+
       const monsterResponse = await fetch('/api/monsters', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -131,7 +132,27 @@ const MonsterForm = () => {
     }
   }
 
+  const monsterTypeDisplay = (type:string) => {
+    switch (type) {
+      case 'Humanoid':
+        return '人型';
+      case 'Animal':
+        return '動物型';
+      case 'Mechanical':
+        return '機械型';
+    }
+  }
 
+  const monsterStyleDisplay = (style:string) => {
+    switch (style) {
+      case 'Anime':
+        return 'アニメ風';
+      case 'Realistic':
+        return 'リアル';
+      case 'Semi-realistic':
+        return 'リアル&アニメ風';
+    }
+  }
 
   return (
     <>
@@ -172,35 +193,11 @@ const MonsterForm = () => {
                 </dl>
                 <dl>
                   <dt>タイプ</dt>
-                  <dd>{ 
-                    (() => {
-                      switch (formData.type) {
-                        case 'Humanoid':
-                          return '人型';
-                        case 'Animal':
-                          return '動物型';
-                        case 'Mechanical':
-                          return '機械型';
-                        case 'Plant':
-                          return '植物型';  
-                      }
-                    })()
-                  }</dd>
+                  <dd>{ monsterTypeDisplay(formData.type) }</dd>
                 </dl>
                 <dl>
                   <dt>スタイル</dt>
-                  <dd>{ 
-                    (() => {
-                      switch (formData.style) {
-                        case 'Anime':
-                          return 'アニメ風';
-                        case 'Realistic':
-                          return 'リアル';
-                        case 'Semi-realistic':
-                          return 'リアル&アニメ風';
-                      }
-                    })()
-                  }</dd>
+                  <dd>{ monsterStyleDisplay(formData.style) }</dd>
                 </dl>
               </div>
 
