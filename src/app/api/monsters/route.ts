@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
 import { Monster } from '@/app/types/index';
-import fs from 'fs'; // ファイル操作用モジュールを追加
-import path from 'path'; // パス操作用モジュールを追加
 
 // 今日の日付を "YYYY-MM-DD" 形式で取得する関数
 function getTodayKey() {
@@ -27,47 +25,9 @@ export async function POST(request: Request) {
       await kv.zremrangebyrank('recent_monsters', 0, -(limit+1));
       // 今日の生成回数を増やす
       await kv.incr(`generation_count:${todayKey}`);
-
-      // /public/monsters/ に画像を保存
-      if (monster.imageUrl) {
-        const imageUrl = monster.imageUrl;
-        try {
-          const response = await fetch(imageUrl);
-          if (!response.ok) {
-            // 'buffer' プロパティは 'Response' 型に存在しないため、'arrayBuffer' を使用して修正
-            throw new Error(`画像の取得に失敗しました: ${response.statusText}`);
-          }
-          const arrayBuffer = await response.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          // 画像保存先のパスを設定
-          const monstersDir = path.join(process.cwd(), 'public', 'monsters');
-          // ディレクトリが存在しない場合は作成
-          if (!fs.existsSync(monstersDir)) {
-            fs.mkdirSync(monstersDir, { recursive: true });
-          }
-          // 画像ファイル名を設定 (例: monster_{id}.jpg)
-          const fileExtension = path.extname(imageUrl).split('?')[0] || '.jpg'; // 拡張子を取得
-          const fileName = `monster_${monster.id}${fileExtension}`;
-          const filePath = path.join(monstersDir, fileName);
-
-          // 画像ファイルを保存
-          fs.writeFileSync(filePath, buffer);
-
-          // モンスターの imageUrl を更新
-          monster.imageUrl = `/monsters/${fileName}`;
-          // 更新された monster オブジェクトを KV に保存
-          await kv.set(key, JSON.stringify(monster));
-
-        } catch (fetchError) {
-          console.error('画像の取得に失敗しました:', fetchError);
-          return NextResponse.json({ error: `Failed to fetch image: ${fetchError}`, monster }, { status: 400 });
-        }
-        
-      }
-
-
+      
     } catch (kvError) {
-      console.error('ストレージが利用制限に達しました:', kvError); // kvErrorを追加して詳細なエラーメッセージを表示
+      console.error('ストレージが利用制限に達しました:');//kvError これを設定するとコンソールがうるさくなるので必要な場合のみセットする
       // KVエラーの場合、クライアントにエラーステータスを返す
       return NextResponse.json(
         { error: 'Storage limit reached', monster },
