@@ -1,5 +1,8 @@
 .imageList {
-  @apply grid grid-cols-[repeat(auto-fit,max(200px))] place-content-center w-[max-content] gap-8 md:w-[100%] mx-auto md:px-5 py-10;
+  @apply 
+    w-[max-content] gap-8 md:w-[100%] mx-auto md:px-5 py-10
+    flex justify-center
+    md:grid md:grid-cols-[repeat(auto-fit,max(200px))] md:place-content-center;
   &Wrap {
     overflow-x:scroll;
     max-width: 100%;

@@ -80,7 +80,8 @@ const MonsterForm = () => {
         attribute: hiddenAttributeJp,
         type,
         style,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        imageData: ''
       };
 
       const monsterResponse = await fetch('/api/monsters', {
