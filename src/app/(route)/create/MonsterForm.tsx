@@ -101,8 +101,8 @@ const MonsterForm = () => {
       } else {
         setIsKvLimitReached(false);
       }
-  
-      setMonsterImg(permanentImageUrl);
+      console.log('モンスターを生成しました:', newMonster.imageUrl);
+      setMonsterImg(newMonster.imageUrl);
       setTodayCount(prevCount => prevCount + 1);
   
     } catch(error) {
