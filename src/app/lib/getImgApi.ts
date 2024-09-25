@@ -1,100 +1,94 @@
 import axios from 'axios'
+import { JOBS, JobTypes } from '@/app/constans/atributes';
+import { FormDataProps } from '@/app/types';
 
-type FetchMonsterImgProps = {
-  description: string;
-  attribute: string;
-  type?: string;
-  style?: string;
-}
 
 const fetchMonsterImg = async ({
-    description,
-    attribute,
-    type,
-    style
-  }: FetchMonsterImgProps): Promise<string> => {
+  description,
+  attribute,
+  type,
+  style,
+  job,
+  gender
+}: FormDataProps) => {
 
-    // console.log(type);
-    // console.log(style);
+  const jobInfo = JOBS.find(j => j.en === job) as JobTypes;
 
-    let basePrompt = '';
-    
-    // タイプに基づいた基本的な特徴を設定
-    if (type === 'Humanoid') {
-      basePrompt = `A humanoid creature with a human-like body structure. 
-      - Upright posture with two arms and two legs.
-      - Human-like face with expressive features, with subtle ${attribute}-related modifications.
-      - Hands and feet resembling human ones, possibly with slight alterations related to its ${attribute}.
-      - Body proportions similar to humans, but with fantastical elements integrated.
-      - Gender: ${Math.random() < 0.5 ? 'male' : 'female'}.
-      - If female:
-        - Tasteful, contextually appropriate clothing.
-      - Clothing or armor that enhances its ${attribute} abilities while maintaining a humanoid silhouette.`;
-    } else if (type === 'Animal') {
-      basePrompt = `A fantastical animal-like creature with non-humanoid features. 
-      - Quadrupedal or with a unique body structure distinctly different from humans.
-      - Animal-like head and face, potentially combining features from different species.
-      - Fur, scales, feathers, or a unique body covering related to its ${attribute}.
-      - Tail, wings, fins, or other non-human appendages that reflect its ${attribute}.
-      - Natural weapons or defenses like claws, fangs, or horns, integrated with its ${attribute}.`;
-    } else if (type === 'Mechanical') {
-      basePrompt = `A sophisticated mechanical entity with robotic or technological features. 
-      - Body composed of visible mechanical parts, gears, circuits, or energy conduits.
-      - Sleek or industrial design with elements clearly showcasing its ${attribute}.
-      - Robotic limbs or appendages with special functions related to its ${attribute}.
-      - Emits energy or has visible power sources matching its ${attribute}.
-      - Includes technological enhancements like scanners, weaponry, or tools integrated into its body.`;
+  // 重要な指示を最初に配置
+  let basePrompt = `Full-body portrait of a ${gender} ${type.toLowerCase()} character, entire figure visible from head to toe. ${attribute}-themed. Dynamic action pose showcasing abilities.`;
+
+  // 性別と体型の特徴を追加
+  switch (gender) {
+    case 'male':
+      basePrompt += ' Masculine build, defined muscles.';
+      break;
+    case 'female':
+      basePrompt += ' Feminine figure, graceful features.';
+      break;
+    case 'unknown':
+      basePrompt += ' Androgynous appearance, balanced physique.';
+      break;
+  }
+
+  // タイプに基づく特徴を追加
+  if (type === 'Humanoid') {
+    basePrompt += ` Realistic human proportions, detailed facial features, expressive eyes. Five fingers on each hand. Wearing ${attribute}-infused armor or clothing suitable for a ${jobInfo.en.toLowerCase()}.`;
+  } else if (type === 'Animal') {
+    basePrompt += ` Animal face with ${attribute} traits, anthropomorphic body.`;
+  }
+
+  // 職業の特徴を詳細に追加
+  if (jobInfo) {
+    basePrompt += ` ${jobInfo.prompt} ${jobInfo.desc}`;
+  }
+
+  // スタイルに基づいてプロンプトを調整
+  if (style === 'Anime' || style === 'アニメ風') {
+    basePrompt += ' Anime style: Bold lines, vibrant colors, large expressive eyes, exaggerated features while maintaining realism.';
+  } else if (style === 'Semi-realistic' || style === 'リアル') {
+    basePrompt += ' Semi-realistic style: Detailed textures, natural proportions, subtle lighting effects.';
+  } else {
+    // デフォルトはアニメ風
+    basePrompt += ' Anime style: Bold lines, vibrant colors, large expressive eyes, exaggerated features while maintaining realism.';
+  }
+
+  // 属性効果を追加
+  basePrompt += ` Striking ${attribute} aura/effects emanating from the character and their equipment.`;
+
+  // 説明を追加
+  basePrompt += ` ${description}.`;
+
+  // 重要な指示を最後にも追加
+  basePrompt += ' Ensure the entire body is visible within the frame, from head to toe. Wide shot to include full figure.';
+
+  // console.log(basePrompt);
+
+  const options = {
+    method: 'POST',
+    url: 'https://api.getimg.ai/v1/flux-schnell/text-to-image',
+    headers: { 
+      accept: 'application/json', 
+      'content-type': 'application/json', 
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_GETIMG_API_KEY}` 
+    },
+    data: { 
+      prompt: basePrompt, 
+      steps: 3, 
+      response_format: 'url' 
     }
+  };
 
-    // スタイルに基づいた表現方法を追加
-    let stylePrompt = '';
-    const commonStyle = `High-quality render, detailed, sharp focus.`;
-    
-    if (style === 'Anime') {
-      stylePrompt = `${commonStyle} Anime style: 
-      Bold outlines, vibrant colors, large expressive eyes, 
-      (exaggerated expressions, dynamic poses, simplified backgrounds).`;
-    } else if (style === 'Realistic') {
-      stylePrompt = `${commonStyle} Photorealistic style: 
-      Accurate anatomy, complex textures, realistic lighting and shadows, 
-      (fine details in skin/fur/materials, naturalistic environment).`;
-    } else if (style === 'Semi-realistic') {
-      stylePrompt = `${commonStyle} Semi-realistic style: 
-      Balanced realism and stylization, detailed textures, expressive features, 
-      (slightly exaggerated proportions, enhanced color palette).`;
+  try {
+    const response = await axios.request(options);
+    if (response.data && response.data.url) {
+      return response.data.url;
+    } else {
+      console.error('Invalid response from GetImg.ai API:', response.data);
+      throw new Error('Invalid response from GetImg.ai API');
     }
-    
-    // 最終的なプロンプトを組み立てる
-    const prompt = `${basePrompt} ${stylePrompt}
-    Inspired by ${description}, embodying ${attribute} type.
-    - Unique adaptations for ${attribute} abilities.
-    - Striking colors/patterns reflecting ${attribute}.
-    - Subtle environmental effects showcasing ${attribute} powers.
-    - Pose and expression convey personality and ${attribute} connection.
-    - Original design, unique silhouette.`;
-    
-
-    const options = {
-      method: 'POST',
-      url: 'https://api.getimg.ai/v1/flux-schnell/text-to-image',
-      headers: {accept: 'application/json', 'content-type': 'application/json', Authorization: `Bearer ${process.env.NEXT_PUBLIC_GETIMG_API_KEY}`},
-      data: { prompt, steps: 3, response_format: 'url'}
-    };
-    
-    
-    try {
-      const response = await axios.request(options);
-      if (response.data && response.data.url) {
-        return response.data.url;
-      } else {
-        console.error('Invalid response from GetImg.ai API:', response.data);
-        throw new Error('Invalid response from GetImg.ai API');
-      }
-    } catch (error) {
-      console.error("画像生成に失敗しました", error);
-      throw error;
-    }
-
+  } catch (error) {
+    console.error("画像生成に失敗しました", error);
+    throw error;
+  }
 }
-
 export { fetchMonsterImg };

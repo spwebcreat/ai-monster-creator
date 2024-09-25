@@ -1,6 +1,9 @@
 // https://heroicons.com/
 
-import { ShareIcon,ArrowDownOnSquareIcon } from '@heroicons/react/24/solid'
+import { 
+  ShareIcon,
+  ArrowDownOnSquareIcon ,
+} from '@heroicons/react/24/solid'
 
 interface IconProps {
   className?: string;  // オプショナルに変更

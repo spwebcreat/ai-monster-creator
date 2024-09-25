@@ -1,18 +1,26 @@
 export interface FormDataProps {
-  description: string;
+  description?: string;
   attribute: string;
+  job: string;
+  gender: string;
   hiddenAttributeJp: string;
   type: string;
-  style: string;
+  style?: string;
 }
 
 export interface MonsterFormProps {
-  onSubmit: (description: string, attribute: string, hiddenAttributeJp: string, type: string, style: string) => void;
+  onSubmit: (
+    description: string, 
+    attribute: string, 
+    job: string, 
+    gender: string, 
+    hiddenAttributeJp: string, 
+    type: string, 
+    style: string,
+  ) => void;
   isLoading: boolean;
   isGenerated: boolean;
 }
-
-
 
 export interface Monster {
   imageData: WithImplicitCoercion<string> | { [Symbol.toPrimitive](hint: "string"): string; };
@@ -21,7 +29,8 @@ export interface Monster {
   description: string;
   attribute: string;
   type: string;
-  style: string;
+  job: string;
+  gender: string;
   createdAt: string;
   
 }

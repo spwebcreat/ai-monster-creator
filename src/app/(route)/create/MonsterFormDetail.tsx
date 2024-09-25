@@ -2,7 +2,7 @@
 
 import { ButtonSubmit } from '@/app/components/Button'
 import React, { useCallback, useEffect, useState } from 'react'
-import { MONSTER_ATTRIBUTES, MONSTER_TYPES, MONSTER_STYLES } from '@/app/constans/atributes'
+import { MONSTER_ATTRIBUTES, MONSTER_TYPES, MONSTER_STYLES, JOBS } from '@/app/constans/atributes'
 import styles from './Create.module.scss'
 import type { MonsterFormProps } from '@/app/types'
 import Loading from '@/app/loading'
@@ -12,6 +12,8 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
 
   const [description, setDescription] = useState("");
   const [attribute, setAttribute] = useState("");
+  const [job, setjob] = useState("");
+  const [gender, setGender] = useState('');
   const [type, setType] = useState("");
   const [style, setStyle] = useState("");
   const [hiddenAttributeJp, setHiddenAttributeJp] = useState("");
@@ -38,7 +40,7 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit(description, attribute, hiddenAttributeJp,type,style);
+    onSubmit(description, job,attribute, gender, hiddenAttributeJp,type);
     setShouldScroll(true);
 
   }
@@ -65,7 +67,6 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
             value={description} 
             onChange={(e) => setDescription(e.target.value)} 
             placeholder="英語入力推奨 例: cute woman angry etc..."
-            required
             autoComplete='off'
           />
           
@@ -73,6 +74,44 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
         <span className="text-sm w-fit relative top-[-10px] ml-5">
           ※複数の特徴を入力すると、より特徴を捉えたモンスターが生成されます。
         </span>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className={styles.formGroup}>
+            <label htmlFor="job" className={styles.label}>職業</label>
+            <select 
+              id="job" 
+              className={styles.select}
+              onChange={(e) => setjob(e.target.value)}
+              required
+              value={job}
+            >
+              <option value="">選択してください</option>
+              {JOBS.map((job) => (
+                <option key={job.en} value={job.en}>
+                  {job.ja}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="gender" className={styles.label}>性別</label>
+            <select 
+              id="gender" 
+              className={styles.select}
+              onChange={(e) => setGender(e.target.value)}
+              required
+              value={gender}
+            >
+              <option value="">選択してください</option>
+              <option value="male">男</option>
+              <option value="female">女</option>
+              <option value="unknown">不明</option>
+            </select>
+          </div>
+
+
+        </div>
 
         <div className="grid gap-4 md:grid-cols-2">
 
@@ -114,23 +153,8 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
           </div>
         </div>
 
-        <div className={styles.formGroup}>
-            <label htmlFor="style" className={styles.label}>スタイル</label>
-            <select 
-              id="style" 
-              className={styles.select}
-              onChange={(e) => setStyle(e.target.value)}
-              required
-              value={style}
-            >
-              <option value="">選択してください</option>
-              {MONSTER_STYLES.map((style) => (
-                <option key={style.en} value={style.en}>
-                  {style.ja}
-                </option>
-              ))}
-            </select>
-        </div>
+
+
       </div>
       {!isLoading &&
         <>

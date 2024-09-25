@@ -14,7 +14,7 @@ import { revalidateRoot } from './actions';
 
 const MonsterForm = () => {
 
-  const [formData, setFormData] = useState( { description: "", attribute: "" , hiddenAttributeJp: "" ,type :"" , style:""} );
+  const [formData, setFormData] = useState( { description: "", attribute: "" , hiddenAttributeJp: "" ,type :"" , style:"", job:"", gender:"" } );
   const [monsterImg, setMonsterImg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isGenerated, setIsGenerated] = useState<boolean>(false);
@@ -42,7 +42,15 @@ const MonsterForm = () => {
   if (!isClient) return null;
 
   
-  const handleFormSubmit = async (description:string,attribute:string, hiddenAttributeJp:string,type:string,style:string) => {
+  const handleFormSubmit = async (
+    description:string,
+    job:string,
+    gender:string,
+    attribute:string, 
+    hiddenAttributeJp:string,
+    type:string,
+    style:string,
+  ) => {
 
     setErrorMessage(null);
     setIsKvLimitReached(false);
@@ -54,16 +62,16 @@ const MonsterForm = () => {
 
     setIsLoading(true);
     setIsGenerated(false);
-    setFormData({ description, attribute, hiddenAttributeJp, type, style });
+    setFormData({ description, attribute, hiddenAttributeJp, type, style, job, gender });
 
 
     try {
-      const tempImageUrl: string = await fetchMonsterImg({ description, attribute, type, style });
+      const tempImageUrl: string = await fetchMonsterImg({   description,attribute,type,style,job,gender,hiddenAttributeJp});
       
       const saveResponse = await fetch('/api/saveImage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl: tempImageUrl })
+        body: JSON.stringify({ imageUrl: tempImageUrl, description, attribute, hiddenAttributeJp, type, style, job, gender })
       });
   
       if (!saveResponse.ok) {
@@ -79,7 +87,8 @@ const MonsterForm = () => {
         description,
         attribute: hiddenAttributeJp,
         type,
-        style,
+        job,
+        gender,
         createdAt: new Date().toISOString(),
         imageData: ''
       };
@@ -155,6 +164,8 @@ const MonsterForm = () => {
     }
   }
 
+  console.log(formData);
+
   return (
     <>
     <div className={styles.magicCircle}>
@@ -185,12 +196,16 @@ const MonsterForm = () => {
             <>
               <div className={styles.monsterMeta}>
                 <dl>
-                  <dt>特徴</dt>
-                  <dd>{formData.description}</dd>
+                  <dt>職業</dt>
+                  <dd>{formData.job}</dd>
                 </dl>
                 <dl>
                   <dt>属性</dt>
                   <dd>{formData.hiddenAttributeJp}</dd>
+                </dl>
+                <dl>
+                  <dt>性別</dt>
+                  <dd>{formData.gender}</dd>
                 </dl>
                 <dl>
                   <dt>タイプ</dt>
