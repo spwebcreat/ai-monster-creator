@@ -40,9 +40,9 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit(description, job,attribute, gender, hiddenAttributeJp,type);
+    // onSubmit関数に渡す引数が不足しているため、styleを追加しました
+    onSubmit(description, job, attribute, gender, hiddenAttributeJp, type, style);
     setShouldScroll(true);
-
   }
 
   useEffect(() => {
