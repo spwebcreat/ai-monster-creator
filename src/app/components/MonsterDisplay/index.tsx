@@ -51,11 +51,6 @@ const MonstersDisplay = ({ initialMonsters }: { initialMonsters: Monster[] }) =>
                   monster.type === 'Mechanical' ? '機械型' : 
                   monster.type === 'Plant' ? '植物型' : ''
                 }</li>
-                <li>スタイル: {
-                  monster.style === 'Realistic' ? 'リアル' :
-                  monster.style === 'Anime' ? 'アニメ風' :
-                  monster.style === 'Semi-realistic' ? 'リアル&アニメ' : ''
-                }</li>
               </ul>
               <a download="monster.png" href={monster.imageUrl} className={styles.downloadButton}>ダウンロード</a>
             </div>
