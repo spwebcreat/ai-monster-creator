@@ -1,6 +1,8 @@
 // 特徴（自由入力）を指示文用の英語に直す（サーバー専用）。/api/generate からのみ使う。
 // FLUX は日本語を読めないため、英数字と記号以外を含む特徴だけを Claude Haiku で短い英語にする。
 // 鍵は ANTHROPIC_API_KEY（NEXT_PUBLIC_ なし）から読むため、ブラウザ用 JS には入らない
+import { kv } from '@vercel/kv';
+import { DAILY_TRANSLATION_LIMIT, getTranslationCountKey } from '@/app/lib/generationLimit';
 
 const ANTHROPIC_ENDPOINT = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
@@ -39,6 +41,23 @@ const toPromptText = (text: string, maxLength: number) => {
 
 const hasLetter = (text: string) => /[A-Za-z]/.test(text);
 
+// 英訳を呼ぶ直前に、その日の英訳回数を数えて上限内かを返す。数え戻しはしない。
+// KV が使えない時は false（回数を数えられないまま呼ぶと、英訳の利用料に上限が効かないため）
+const reserveTranslation = async (): Promise<boolean> => {
+  let count: number;
+  try {
+    count = await kv.incr(getTranslationCountKey());
+  } catch {
+    console.error('Description translation skipped: count unavailable (KV error)');
+    return false;
+  }
+  if (count > DAILY_TRANSLATION_LIMIT) {
+    console.error('Description translation skipped: daily limit reached');
+    return false;
+  }
+  return true;
+};
+
 // Claude Haiku で英訳する。失敗した時は null（理由だけを記録し、利用者の文は記録しない）
 const translateToEnglish = async (description: string): Promise<string | null> => {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -46,6 +65,7 @@ const translateToEnglish = async (description: string): Promise<string | null> =
     console.error('Description translation skipped: ANTHROPIC_API_KEY is not set');
     return null;
   }
+  if (!(await reserveTranslation())) return null;
 
   try {
     const response = await fetch(ANTHROPIC_ENDPOINT, {
