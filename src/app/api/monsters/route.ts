@@ -1,42 +1,18 @@
 import { NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
-import { validate as isUuid } from 'uuid';
-import { Monster } from '@/app/types/index';
+import type { Monster } from '@/app/types/index';
 import { DAILY_GENERATION_LIMIT, getGenerationCountKey } from '@/app/lib/generationLimit';
-import { isBlobImageUrl } from '@/app/lib/allowedUrl';
-import { DESCRIPTION_MAX_LENGTH, GENDERS, JOBS, MONSTER_ATTRIBUTES, MONSTER_TYPES } from '@/app/constans/atributes';
+import { checkStoredMonster, monsterKey, parseMonster } from '@/app/lib/monsterRecord';
+import {
+  ALL_MONSTERS_KEY,
+  RECENT_MONSTERS_KEY,
+  RECENT_MONSTERS_MAX,
+  parsePaging,
+  toIndexScore,
+} from '@/app/lib/monsterIndex';
 
-const limit:number = 12;
-
-const isOneOf = (value: unknown, values: string[]): value is string =>
-  typeof value === 'string' && values.includes(value);
-
-// toISOString() の形の日時文字列か
-const isIsoDateString = (value: unknown): value is string => {
-  if (typeof value !== 'string') return false;
-  const time = Date.parse(value);
-  return !Number.isNaN(time) && new Date(time).toISOString() === value;
-};
-
-// 受け取ったモンスターを許可リストで検証し、許可した項目だけを詰め直す。不正なら null
-function parseMonster(body: unknown): Monster | null {
-  if (!body || typeof body !== 'object') return null;
-  const { id, imageUrl, description, attribute, type, job, gender, createdAt } = body as Record<string, unknown>;
-
-  if (typeof id !== 'string' || !isUuid(id)) return null;
-  if (!isBlobImageUrl(imageUrl)) return null;
-  if (typeof description !== 'string') return null;
-  const trimmedDescription = description.trim();
-  if (trimmedDescription.length > DESCRIPTION_MAX_LENGTH) return null;
-  // attribute は表示用の日本語名（火・雷 など）で保存している
-  if (!isOneOf(attribute, MONSTER_ATTRIBUTES.map((item) => item.ja))) return null;
-  if (!isOneOf(type, MONSTER_TYPES.map((item) => item.en))) return null;
-  if (!isOneOf(job, JOBS.map((item) => item.en))) return null;
-  if (!isOneOf(gender, GENDERS.map((item) => item.en))) return null;
-  if (!isIsoDateString(createdAt)) return null;
-
-  return { id, imageUrl, description: trimmedDescription, attribute, type, job, gender, createdAt };
-}
+// ?offset=&limit= を読むため、毎回その場で応答する
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
@@ -44,16 +20,18 @@ export async function POST(request: Request) {
     if (!monster) {
       return NextResponse.json({ error: 'Invalid monster data' }, { status: 400 });
     }
-    const key = `monster:${monster.id}`;
+    const key = monsterKey(monster.id);
 
     // console.log('Received monster data:', monster); //デバッグ用
     try {
       // モンスターデータを保存
       await kv.set(key, JSON.stringify(monster));
+      // 全件の索引に追加（score は作成日時）
+      await kv.zadd(ALL_MONSTERS_KEY, { score: toIndexScore(monster.createdAt), member: key });
       // 最近のモンスターリストに追加
-      await kv.zadd('recent_monsters', { score: Date.now(), member: key });
-      // 最新の5件のみを保持
-      await kv.zremrangebyrank('recent_monsters', 0, -(limit+1));
+      await kv.zadd(RECENT_MONSTERS_KEY, { score: Date.now(), member: key });
+      // 最新の 12 件のみを保持
+      await kv.zremrangebyrank(RECENT_MONSTERS_KEY, 0, -(RECENT_MONSTERS_MAX + 1));
       // 今日の生成回数は /api/generate が getimg.ai を呼ぶ前に数える（ここでは数えない）
     } catch (kvError) {
       console.error('ストレージが利用制限に達しました:');//kvError これを設定するとコンソールがうるさくなるので必要な場合のみセットする
@@ -76,38 +54,45 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
 
   try {
-    let monsters = [];
+    const { offset, limit } = parsePaging(new URL(request.url).searchParams);
+    let monsters: Monster[] = [];
     let todayCount = 0;
+    let nextOffset: number | null = null;
 
 
     try {
-      // 最近のモンスターリストを取得
-      const limit = 12;
-      const keys = await kv.zrange('recent_monsters', 0, (limit-1), { rev: true });
-      // モンスターデータがnullの場合は除外
-      if (keys && keys.length > 0) {
-        monsters = await Promise.all(
-          keys.map(async (key) => {
-            const monster = await kv.get(key as string);
+      const [allCount, recentCount, rawCount] = await Promise.all([
+        kv.zcard(ALL_MONSTERS_KEY),
+        kv.zcard(RECENT_MONSTERS_KEY),
+        kv.get(getGenerationCountKey()),
+      ]);
+      // 全件の索引（all_monsters）を作る前は、今までどおり最新 12 件の索引を読む。
+      // 作る前に生成された数件だけが all_monsters に入っていても一覧がその数件に減らないよう、件数で比べて決める
+      const useAll = allCount > 0 && allCount >= recentCount;
+      const indexKey = useAll ? ALL_MONSTERS_KEY : RECENT_MONSTERS_KEY;
+      const total = useAll ? allCount : recentCount;
 
-            return monster ? (typeof monster === 'string' ? JSON.parse(monster) : monster) : null;
-          })
-        );
-        // モンスターデータがnullの場合は除外
-        monsters = monsters.filter(monster => monster !== null);
-      }
+      const keys = offset < total
+        ? await kv.zrange<string[]>(indexKey, offset, offset + limit - 1, { rev: true })
+        : [];
+      const values = keys.length > 0 ? await kv.mget<unknown[]>(...keys) : [];
+      // 読めない・検証に合わないデータは飛ばす（件数が limit に満たなくても、続きの位置は索引上で決める）
+      monsters = values.flatMap((value, index) => {
+        const result = checkStoredMonster(String(keys[index]), value);
+        return 'monster' in result ? [result.monster] : [];
+      });
+      nextOffset = offset + limit < total ? offset + limit : null;
       // /api/generate は上限を超えた回も数えたままにするため、表示は上限で頭打ちにする
-      const rawCount = Number(await kv.get(getGenerationCountKey())) || 0;
-      todayCount = Math.min(rawCount, DAILY_GENERATION_LIMIT);
+      todayCount = Math.min(Number(rawCount) || 0, DAILY_GENERATION_LIMIT);
     } catch (kvError) {
       console.error('KV fetch error:利用制限中です'); //kvError これを設定するとコンソールがうるさくなるので必要な場合のみセットする
       // KVエラーの場合、空の配列とカウント0を使用
-      return NextResponse.json({ monsters: [], todayCount: 0 });
+      return NextResponse.json({ monsters: [], todayCount: 0, nextOffset: null });
     }
-    return NextResponse.json({ monsters, todayCount });
+    return NextResponse.json({ monsters, todayCount, nextOffset });
 
   } catch (error) {
     console.error('Error fetching monsters:', error);

@@ -31,5 +31,13 @@ export interface Monster {
   job: string;
   gender: string;
   createdAt: string;
-  
+
+}
+
+// GET /api/monsters の応答（一覧の 1 ページ分）と getMonsters の戻り値
+export interface MonstersPage {
+  monsters: Monster[];
+  todayCount: number;
+  // 続きを読む時に渡す offset（索引上の位置）。続きが無ければ null
+  nextOffset: number | null;
 }
