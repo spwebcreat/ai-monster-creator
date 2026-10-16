@@ -22,7 +22,7 @@ const MonsterCard = ({ monster, onOpen }: Props) => {
   const stats = getMonsterStats(monster.job, monster.attribute);
 
   return (
-    <article className={styles.card} style={getAttributeStyle(monster.attribute)}>
+    <article className={styles.card} style={getAttributeStyle(monster.attribute)} data-monster-id={monster.id}>
       <div className={styles.top}>
         <span className={styles.attribute} title={`${monster.attribute}属性`}>{monster.attribute}</span>
         {typeLabel && <span className={styles.type}>{typeLabel}</span>}

@@ -11,9 +11,31 @@
   @apply text-center text-gray-300 py-10;
 }
 
-.updateButton {
-  @apply bg-cyan-600 text-white text-[12px] px-5 py-2 font-bold rounded-md;
-  &Wrap {
-    @apply w-fit  mx-auto mb-5;
+.more {
+  @apply flex justify-center pt-4;
+}
+
+// 「もっと見る」。下の「モンスターを生成する」（赤の塗り）と区別するため、枠だけの赤にする
+.moreButton {
+  @apply flex items-center justify-center gap-3 w-[80%] md:w-[320px] py-4 rounded-md font-bold text-white transition-colors;
+  border: 2px solid var(--primary);
+  background: rgba(21, 21, 21, 0.85);
+  &:hover:not(:disabled) {
+    background: var(--primary);
   }
+  &:disabled {
+    @apply cursor-wait opacity-80;
+  }
+  // 読み込み中の回る印は小さめに
+  :global(.animate-spin) {
+    @apply h-5 w-5;
+  }
+}
+
+.moreError {
+  @apply text-center text-red-300 text-sm pt-3;
+}
+
+.moreEnd {
+  @apply text-center text-gray-400 text-sm pt-4;
 }
