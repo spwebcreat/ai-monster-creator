@@ -89,7 +89,8 @@
 .meta {
   @apply grid gap-1;
   dl {
-    @apply grid grid-cols-[88px_1fr];
+    // 値の列は minmax(0, 1fr)（長い文字があっても列が広がらない）
+    @apply grid grid-cols-[88px_minmax(0,1fr)];
   }
   dt {
     @apply font-bold bg-primary text-center p-2;
@@ -99,6 +100,8 @@
   }
   .feature {
     @apply text-left break-words;
+    // 空白の無い長い入力（英字の連続など）も枠の中で折り返す
+    overflow-wrap: anywhere;
   }
 }
 

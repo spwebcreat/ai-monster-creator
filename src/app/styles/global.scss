@@ -16,6 +16,11 @@
   }
 }
 
+// スクロールバーの分の幅を常に確保する（モーダルで背景のスクロールを止めた時に、Windows などでスクロールバーの幅だけ画面がずれないように）
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   @apply relative;
   overflow-x: hidden;
