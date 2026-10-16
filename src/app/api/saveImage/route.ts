@@ -1,36 +1,28 @@
 import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { GETIMG_IMAGE_HOST } from '@/app/constans/imageHosts.mjs';
+import { parseHttpsUrlOnHost } from '@/app/lib/allowedUrl';
 
-// 取りに行ってよいのは getimg.ai の画像置き場だけ（任意の URL をサーバーに取得させない）
-function parseAllowedImageUrl(imageUrl: unknown): URL | null {
-  if (typeof imageUrl !== 'string') return null;
-  let url: URL;
-  try {
-    url = new URL(imageUrl);
-  } catch {
-    return null;
-  }
-  if (url.protocol !== 'https:' || url.hostname !== GETIMG_IMAGE_HOST || url.port !== '' || url.username || url.password) {
-    return null;
-  }
-  return url;
-}
+// 画像の取得と Blob への保存に余裕を持たせる
+export const maxDuration = 30;
 
 export async function POST(request: Request) {
+  const body: unknown = await request.json().catch(() => null);
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+  }
+
+  // 取りに行ってよいのは getimg.ai の画像置き場だけ（任意の URL をサーバーに取得させない）
+  const allowedUrl = parseHttpsUrlOnHost((body as Record<string, unknown>).imageUrl, GETIMG_IMAGE_HOST);
+  if (!allowedUrl) {
+    return NextResponse.json({ error: 'Invalid imageUrl' }, { status: 400 });
+  }
+
   try {
-    const { imageUrl } = await request.json();
-    // console.log('Received imageUrl:', imageUrl); // デバッグ用ログ
-
-    const allowedUrl = parseAllowedImageUrl(imageUrl);
-    if (!allowedUrl) {
-      return NextResponse.json({ error: 'Invalid imageUrl' }, { status: 400 });
-    }
-
-    // 本画像をfetch
-    const response = await fetch(allowedUrl, { cache: 'no-store' });
+    // 本画像をfetch（転送先へ付いて行くと許可リストを外れうるため、転送は失敗扱い）
+    const response = await fetch(allowedUrl, { cache: 'no-store', redirect: 'error' });
     if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.statusText}`);
+      throw new Error(`Failed to fetch image: ${response.status}`);
     }
     const blob = await response.blob();
 
@@ -41,17 +33,11 @@ export async function POST(request: Request) {
       access: 'public',
       addRandomSuffix: true,
     });
-    // console.log('Saved image URL:', url); // デバッグ用ログ
 
     return NextResponse.json({ url });
   } catch (error) {
+    // 内部のエラー文はサーバーのログにだけ残し、応答には含めない
     console.error('Failed to save image:', error);
-    // エラーオブジェクトの型を確認し、適切に処理します
-    if (error instanceof Error) {
-      return NextResponse.json({ error: 'Failed to save image', details: error.message }, { status: 500 });
-    } else {
-      // エラーがErrorインスタンスでない場合の処理
-      return NextResponse.json({ error: 'Failed to save image', details: 'Unknown error occurred' }, { status: 500 });
-    }
+    return NextResponse.json({ error: 'Failed to save image' }, { status: 500 });
   }
 }

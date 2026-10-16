@@ -5,6 +5,15 @@ import { Monster } from '@/app/types/index'
 import styles from './index.module.scss'
 import { useEffect, useState } from 'react'
 import Loading from '@/app/loading'
+import { isBlobImageUrl } from '@/app/lib/allowedUrl'
+
+// 描画してよいデータか（KV に残る過去のデータへの備え）。
+// 画像は https の Vercel Blob の URL のみ。文字として描く項目は文字列のみ（オブジェクトだと一覧ごと描画に失敗するため）
+const isDisplayableMonster = (monster: Monster | null | undefined): monster is Monster =>
+  !!monster &&
+  typeof monster.id === 'string' &&
+  typeof monster.attribute === 'string' &&
+  isBlobImageUrl(monster.imageUrl);
 
 const MonstersDisplay = ({ initialMonsters }: { initialMonsters: Monster[] }) => {
   const [monsters, setMonsters] = useState(initialMonsters);
@@ -28,6 +37,8 @@ const MonstersDisplay = ({ initialMonsters }: { initialMonsters: Monster[] }) =>
   }, []);
 
 
+  const displayableMonsters = Array.isArray(monsters) ? monsters.filter(isDisplayableMonster) : [];
+
   return (
     <>
       
@@ -39,9 +50,9 @@ const MonstersDisplay = ({ initialMonsters }: { initialMonsters: Monster[] }) =>
       
 
       <div className={styles.imageList}>
-        {monsters.map((monster) => (
+        {displayableMonsters.map((monster) => (
           <div className={styles.imageListItem} key={monster.id}>
-            <Image src={monster.imageUrl} alt={monster.description ? monster.description : '生成されたモンスター'} width={800} height={800} />
+            <Image src={monster.imageUrl} alt={typeof monster.description === 'string' && monster.description ? monster.description : '生成されたモンスター'} width={800} height={800} />
             <div className={styles.imageItemTitle}>
               <ul className="monsterMeatList">
                 <li>属性: {monster.attribute}</li>

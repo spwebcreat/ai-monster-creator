@@ -11,6 +11,8 @@ import { Monster } from '@/app/types/index';
 import { useRouter } from 'next/navigation';
 import { revalidateRoot } from './actions';
 import { DAILY_GENERATION_LIMIT } from '@/app/lib/generationLimit';
+import { isBlobImageUrl } from '@/app/lib/allowedUrl';
+import { GENDERS } from '@/app/constans/atributes';
 
 const DAILY_LIMIT_MESSAGE = '本日の生成限度に達しました。明日またお試しください。';
 
@@ -57,12 +59,7 @@ const MonsterForm = () => {
     setErrorMessage(null);
     setIsKvLimitReached(false);
 
-    // 上限の強制はサーバー（/api/generate）が行う。ここは表示上の事前チェックのみ
-    if (todayCount >= DAILY_GENERATION_LIMIT) {
-      setErrorMessage(DAILY_LIMIT_MESSAGE);
-      return;
-    }
-
+    // 1日の上限の判定はサーバー（/api/generate の 429）に任せる
     setIsLoading(true);
     setIsGenerated(false);
     setFormData({ description, attribute, hiddenAttributeJp, type, style, job, gender });
@@ -102,18 +99,22 @@ const MonsterForm = () => {
         throw new Error(`Failed to save image: ${errorData?.error ?? saveResponse.status}`);
       }
   
-      const { url: permanentImageUrl } = await saveResponse.json();
+      const saveData = await saveResponse.json().catch(() => null);
+      const permanentImageUrl = saveData?.url;
+      // 画像の src・href に使うので、保存済み画像（https の Vercel Blob）の URL 以外は使わない
+      if (!isBlobImageUrl(permanentImageUrl)) {
+        throw new Error('Invalid saved image URL');
+      }
   
       const newMonster: Monster = {
         id: uuidv4(),
-        imageUrl: permanentImageUrl || '',
+        imageUrl: permanentImageUrl,
         description,
         attribute: hiddenAttributeJp,
         type,
         job,
         gender,
         createdAt: new Date().toISOString(),
-        imageData: ''
       };
 
       const monsterResponse = await fetch('/api/monsters', {
@@ -175,6 +176,9 @@ const MonsterForm = () => {
     }
   }
 
+  const monsterGenderDisplay = (gender:string) =>
+    GENDERS.find((item) => item.en === gender)?.ja ?? gender;
+
   const monsterStyleDisplay = (style:string) => {
     switch (style) {
       case 'Anime':
@@ -185,8 +189,6 @@ const MonsterForm = () => {
         return 'リアル&アニメ風';
     }
   }
-
-  console.log(formData);
 
   return (
     <>
@@ -227,7 +229,7 @@ const MonsterForm = () => {
                 </dl>
                 <dl>
                   <dt>性別</dt>
-                  <dd>{formData.gender}</dd>
+                  <dd>{ monsterGenderDisplay(formData.gender) }</dd>
                 </dl>
                 <dl>
                   <dt>タイプ</dt>

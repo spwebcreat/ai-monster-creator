@@ -23,7 +23,6 @@ export interface MonsterFormProps {
 }
 
 export interface Monster {
-  imageData: WithImplicitCoercion<string> | { [Symbol.toPrimitive](hint: "string"): string; };
   id: string;
   imageUrl: string;
   description: string;

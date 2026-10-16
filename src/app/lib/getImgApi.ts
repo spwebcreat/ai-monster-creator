@@ -6,6 +6,17 @@ import { GenerateRequestBody } from '@/app/types';
 const GETIMG_ENDPOINT = 'https://api.getimg.ai/v1/flux-schnell/text-to-image';
 const GETIMG_TIMEOUT_MS = 25_000;
 
+// getimg.ai が HTTP エラーを返した時の例外（/api/generate が応答コードで数え戻しを判断する）
+class GetImgApiError extends Error {
+  constructor(readonly status: number) {
+    super(`GetImg.ai API error: ${status}`);
+    this.name = 'GetImgApiError';
+  }
+}
+
+// 鍵が設定されているか（未設定なら getimg.ai を呼ばず、回数も数えない）
+const isGetImgConfigured = () => Boolean(process.env.GETIMG_API_KEY);
+
 // 指示文（プロンプト）の組み立て。値は /api/generate で許可リスト検証済みのものを受け取る
 const buildMonsterPrompt = ({
   description,
@@ -93,7 +104,7 @@ const fetchMonsterImg = async (prompt: string): Promise<string> => {
 
   const data = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(`GetImg.ai API error: ${response.status}`);
+    throw new GetImgApiError(response.status);
   }
   if (!data || typeof data.url !== 'string') {
     throw new Error('Invalid response from GetImg.ai API');
@@ -101,4 +112,4 @@ const fetchMonsterImg = async (prompt: string): Promise<string> => {
   return data.url;
 }
 
-export { buildMonsterPrompt, fetchMonsterImg };
+export { GetImgApiError, buildMonsterPrompt, fetchMonsterImg, isGetImgConfigured };

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
 import { DESCRIPTION_MAX_LENGTH, GENDERS, JOBS, MONSTER_ATTRIBUTES, MONSTER_STYLES, MONSTER_TYPES } from '@/app/constans/atributes';
-import { buildMonsterPrompt, fetchMonsterImg } from '@/app/lib/getImgApi';
+import { GetImgApiError, buildMonsterPrompt, fetchMonsterImg, isGetImgConfigured } from '@/app/lib/getImgApi';
 import { DAILY_GENERATION_LIMIT, getGenerationCountKey } from '@/app/lib/generationLimit';
 import { GenerateRequestBody } from '@/app/types';
 
@@ -40,6 +40,15 @@ export async function POST(request: Request) {
     );
   }
 
+  // 鍵が無ければ getimg.ai へは送れないので、回数を数える前に止める
+  if (!isGetImgConfigured()) {
+    console.error('GETIMG_API_KEY is not set');
+    return NextResponse.json(
+      { error: 'not_configured', message: '現在モンスターを生成できません。時間をおいてお試しください。' },
+      { status: 500 }
+    );
+  }
+
   // 1日の上限は getimg.ai を呼ぶ前にサーバー側で数えて強制する
   const countKey = getGenerationCountKey();
   let todayCount: number;
@@ -57,8 +66,7 @@ export async function POST(request: Request) {
   }
 
   if (todayCount > DAILY_GENERATION_LIMIT) {
-    // 上限を超えた分は数えない（トップページの「今日の生成回数」が上限を超えて表示されないように戻す）
-    await kv.decr(countKey).catch(() => undefined);
+    // 上限を超えた回も数えたままにする（表示側の GET /api/monsters で上限に丸める）
     return NextResponse.json(
       {
         error: 'daily_limit_reached',
@@ -73,8 +81,11 @@ export async function POST(request: Request) {
     const imageUrl = await fetchMonsterImg(buildMonsterPrompt(input));
     return NextResponse.json({ imageUrl, todayCount });
   } catch (error) {
-    // 生成に失敗した回は数えない
-    await kv.decr(countKey).catch(() => undefined);
+    // 数え戻すのは getimg.ai が 4xx で断った時だけ（処理されておらず、課金もされていない）。
+    // タイムアウト・通信断・5xx・応答の破損では、getimg.ai 側で処理・課金されている可能性があるため数えたままにする
+    if (error instanceof GetImgApiError && error.status >= 400 && error.status < 500) {
+      await kv.decr(countKey).catch(() => undefined);
+    }
     console.error('Failed to generate image:', error instanceof Error ? error.message : 'Unknown error');
     return NextResponse.json(
       { error: 'generation_failed', message: 'モンスターの生成中にエラーが発生しました。' },

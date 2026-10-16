@@ -1,13 +1,49 @@
 import { NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
+import { validate as isUuid } from 'uuid';
 import { Monster } from '@/app/types/index';
-import { getGenerationCountKey } from '@/app/lib/generationLimit';
+import { DAILY_GENERATION_LIMIT, getGenerationCountKey } from '@/app/lib/generationLimit';
+import { isBlobImageUrl } from '@/app/lib/allowedUrl';
+import { DESCRIPTION_MAX_LENGTH, GENDERS, JOBS, MONSTER_ATTRIBUTES, MONSTER_TYPES } from '@/app/constans/atributes';
 
 const limit:number = 12;
 
+const isOneOf = (value: unknown, values: string[]): value is string =>
+  typeof value === 'string' && values.includes(value);
+
+// toISOString() の形の日時文字列か
+const isIsoDateString = (value: unknown): value is string => {
+  if (typeof value !== 'string') return false;
+  const time = Date.parse(value);
+  return !Number.isNaN(time) && new Date(time).toISOString() === value;
+};
+
+// 受け取ったモンスターを許可リストで検証し、許可した項目だけを詰め直す。不正なら null
+function parseMonster(body: unknown): Monster | null {
+  if (!body || typeof body !== 'object') return null;
+  const { id, imageUrl, description, attribute, type, job, gender, createdAt } = body as Record<string, unknown>;
+
+  if (typeof id !== 'string' || !isUuid(id)) return null;
+  if (!isBlobImageUrl(imageUrl)) return null;
+  if (typeof description !== 'string') return null;
+  const trimmedDescription = description.trim();
+  if (trimmedDescription.length > DESCRIPTION_MAX_LENGTH) return null;
+  // attribute は表示用の日本語名（火・雷 など）で保存している
+  if (!isOneOf(attribute, MONSTER_ATTRIBUTES.map((item) => item.ja))) return null;
+  if (!isOneOf(type, MONSTER_TYPES.map((item) => item.en))) return null;
+  if (!isOneOf(job, JOBS.map((item) => item.en))) return null;
+  if (!isOneOf(gender, GENDERS.map((item) => item.en))) return null;
+  if (!isIsoDateString(createdAt)) return null;
+
+  return { id, imageUrl, description: trimmedDescription, attribute, type, job, gender, createdAt };
+}
+
 export async function POST(request: Request) {
   try {
-    const monster: Monster = await request.json();
+    const monster = parseMonster(await request.json().catch(() => null));
+    if (!monster) {
+      return NextResponse.json({ error: 'Invalid monster data' }, { status: 400 });
+    }
     const key = `monster:${monster.id}`;
 
     // console.log('Received monster data:', monster); //デバッグ用
@@ -63,7 +99,9 @@ export async function GET() {
         // モンスターデータがnullの場合は除外
         monsters = monsters.filter(monster => monster !== null);
       }
-      todayCount = await kv.get(getGenerationCountKey()) || 0;
+      // /api/generate は上限を超えた回も数えたままにするため、表示は上限で頭打ちにする
+      const rawCount = Number(await kv.get(getGenerationCountKey())) || 0;
+      todayCount = Math.min(rawCount, DAILY_GENERATION_LIMIT);
     } catch (kvError) {
       console.error('KV fetch error:利用制限中です'); //kvError これを設定するとコンソールがうるさくなるので必要な場合のみセットする
       // KVエラーの場合、空の配列とカウント0を使用
