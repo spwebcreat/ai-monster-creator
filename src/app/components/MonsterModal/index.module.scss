@@ -1,0 +1,146 @@
+// 図鑑カードと同じ世界観（属性の色の枠と光）。閉じている間はブラウザ既定の display: none のままにするため、表示の指定は [open] の時だけ
+.dialog {
+  @apply p-0 text-white rounded-[14px];
+  border: 2px solid var(--ac);
+  // 下地は不透明（後ろのページを透かさない）。その上に属性の色を上から薄く重ねる
+  background: linear-gradient(180deg, rgba(var(--acr), 0.25), rgba(var(--acr), 0) 45%), var(--bk);
+  box-shadow: 0 0 40px rgba(var(--acr), 0.55);
+  width: min(920px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+
+  &[open] {
+    @apply flex flex-col overflow-hidden;
+    // 親の「子どうしの間に上余白」（.globalConatiner > * + *）を打ち消し、画面の中央に置く
+    margin: auto;
+    animation: modalIn 0.25s ease-out;
+  }
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.75);
+  }
+  &[open]::backdrop {
+    animation: fadeIn 0.25s ease-out;
+  }
+
+  @media (max-width: 767px) {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+
+  // 動きを減らす設定では開く時の動きを止める（閉じる時は元から即時）
+  @media (prefers-reduced-motion: reduce) {
+    &[open],
+    &[open]::backdrop {
+      animation: none;
+    }
+  }
+}
+
+// 中身。はみ出す分はモーダルの中だけでスクロールする
+.inner {
+  @apply grid gap-6 w-full flex-1 min-h-0 p-5 pt-14 overflow-y-auto;
+  @apply md:grid-cols-[auto_minmax(0,1fr)] md:gap-8 md:p-8 md:items-start;
+  overscroll-behavior: contain;
+}
+
+.figure {
+  @apply flex justify-center;
+  img {
+    @apply block rounded-lg w-auto h-auto max-w-full;
+    max-height: 60vh;
+    border: 1px solid rgba(var(--acr), 0.7);
+    box-shadow: 0 0 28px rgba(var(--acr), 0.5);
+    @media (min-width: 768px) {
+      max-height: min(72vh, 620px);
+      max-width: 420px;
+    }
+  }
+}
+
+.info {
+  @apply grid gap-4 content-start;
+}
+
+.top {
+  @apply flex items-center gap-2;
+}
+
+.attribute {
+  @apply grid place-items-center w-[30px] h-[30px] rounded-full font-bold;
+  background: var(--ac);
+  color: var(--af);
+}
+
+.type {
+  @apply text-xs px-2 py-0.5 rounded-[3px];
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.job {
+  @apply text-3xl md:text-4xl font-bold leading-tight;
+}
+
+.desc {
+  @apply text-sm text-gray-300 leading-relaxed;
+}
+
+// 生成ページの結果表示（赤い見出し・黒い値）と同じ見た目
+.meta {
+  @apply grid gap-1;
+  dl {
+    @apply grid grid-cols-[88px_1fr];
+  }
+  dt {
+    @apply font-bold bg-primary text-center p-2;
+  }
+  dd {
+    @apply bg-bk text-center p-2 px-4;
+  }
+  .feature {
+    @apply text-left break-words;
+  }
+}
+
+.stats {
+  @apply grid gap-2 rounded-md p-4;
+  background: rgba(21, 21, 21, 0.8);
+  border: 1px solid rgba(var(--acr), 0.5);
+}
+
+.note {
+  @apply text-[11px] text-gray-400;
+}
+
+.download {
+  @apply flex items-center justify-center gap-2 bg-primary text-white font-bold rounded-md py-3 transition-colors hover:bg-slate-800;
+}
+
+.close {
+  @apply absolute top-3 right-3 z-10 grid place-items-center w-10 h-10 rounded-full text-white transition-colors;
+  background: rgba(21, 21, 21, 0.85);
+  border: 1px solid rgba(var(--acr), 0.7);
+  &:hover {
+    background: rgba(var(--acr), 0.35);
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

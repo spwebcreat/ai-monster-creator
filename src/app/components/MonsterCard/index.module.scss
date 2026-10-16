@@ -1,5 +1,5 @@
 .card {
-  @apply relative flex flex-col p-2 md:p-2.5 rounded-[10px];
+  @apply relative flex flex-col p-2 md:p-2.5 rounded-[10px] cursor-pointer;
   border: 2px solid var(--ac);
   background: linear-gradient(180deg, rgba(var(--acr), 0.3), var(--bk) 55%);
   box-shadow: 0 0 10px rgba(var(--acr), 0.35);
@@ -14,6 +14,11 @@
   }
   &:focus-within {
     box-shadow: 0 0 24px rgba(var(--acr), 0.85);
+  }
+  // キーボードで職業名のボタンに来た時は、カード全体に枠を出す
+  &:has(.open:focus-visible) {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
   }
 
   // 動きを減らす設定の利用者には浮かせず、光るだけにする
@@ -56,6 +61,18 @@
   @apply font-bold text-base md:text-lg leading-tight mt-2 mb-1;
 }
 
+// 職業名のボタン。::after をカード全体に広げ、どこを押してもこのボタンが押される
+.open {
+  @apply text-left font-bold;
+  &::after {
+    content: '';
+    @apply absolute inset-0 rounded-[10px];
+  }
+  &:focus-visible {
+    outline: none;
+  }
+}
+
 .desc {
   @apply text-[11px] leading-normal text-gray-300 mb-2;
   display: -webkit-box;
@@ -68,6 +85,3 @@
   @apply flex justify-between items-center gap-2 mt-auto pt-2 text-[11px] text-gray-400;
 }
 
-.download {
-  @apply ml-auto bg-primary text-white font-bold rounded px-2.5 py-0.5 transition-colors hover:bg-black;
-}

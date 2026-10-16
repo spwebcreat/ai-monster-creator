@@ -5,9 +5,16 @@ import { MONSTER_IMAGE_HEIGHT, MONSTER_IMAGE_WIDTH } from '@/app/constans/imageS
 import { formatCreatedDate, getAttributeStyle, getJob, getMonsterStats, getTypeLabel } from '@/app/lib/monsterProfile'
 import styles from './index.module.scss'
 
+type Props = {
+  monster: Monster;
+  // 詳細のモーダルを開く。opener は閉じた後にフォーカスを戻す要素
+  onOpen: (monster: Monster, opener: HTMLElement) => void;
+};
+
 // 図鑑カード。属性の色の枠と印、職業名を一番大きく、職業の説明文・得意不得意の棒・作成日を添える（性別と特徴は出さない）
+// カードのどこを押しても詳細のモーダルが開く（職業名のボタンをカード全体に広げる）
 // monster.imageUrl は呼び出し側で isBlobImageUrl を通したものだけを渡す
-const MonsterCard = ({ monster }: { monster: Monster }) => {
+const MonsterCard = ({ monster, onOpen }: Props) => {
   const job = getJob(monster.job);
   const jobName = job?.ja ?? '職業不明';
   const typeLabel = getTypeLabel(monster.type);
@@ -29,13 +36,18 @@ const MonsterCard = ({ monster }: { monster: Monster }) => {
           sizes="(max-width: 767px) 50vw, 240px"
         />
       </div>
-      <h3 className={styles.job}>{jobName}</h3>
+      <h3 className={styles.job}>
+        <button type="button" className={styles.open} aria-haspopup="dialog" onClick={(event) => onOpen(monster, event.currentTarget)}>
+          {jobName}
+        </button>
+      </h3>
       {job && <p className={styles.desc}>{job.desc}</p>}
       {stats && <MonsterStats stats={stats} />}
-      <div className={styles.foot}>
-        {createdDate && <time dateTime={monster.createdAt}>{createdDate}</time>}
-        <a download="monster.png" href={monster.imageUrl} className={styles.download} aria-label={`${jobName}の画像を保存`}>保存</a>
-      </div>
+      {createdDate && (
+        <div className={styles.foot}>
+          <time dateTime={monster.createdAt}>{createdDate}</time>
+        </div>
+      )}
     </article>
   )
 }

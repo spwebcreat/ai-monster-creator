@@ -1,5 +1,7 @@
+'use client'
+
 import Image from 'next/image'
-import type { CSSProperties } from 'react'
+import { useRef, type CSSProperties } from 'react'
 import { Monster } from '@/app/types/index'
 import MonsterStats from '@/app/components/MonsterStats'
 import { MONSTER_IMAGE_HEIGHT, MONSTER_IMAGE_WIDTH } from '@/app/constans/imageSize'
@@ -38,9 +40,18 @@ const BACK_PARTICLES = makeParticles({ count: 22, x: [[4, 34], [66, 96]], size: 
 // 手前の粒子: 足元の近くだけを低く昇り、顔の高さに届く前に消える
 const FRONT_PARTICLES = makeParticles({ count: 8, x: [[28, 72]], size: [4, 7], duration: [2.6, 4], rise: [0.22, 0.38], alpha: [0.5, 0.8] });
 
+type Props = {
+  monster: Monster;
+  // 詳細のモーダルを開く。opener は閉じた後にフォーカスを戻す要素
+  onOpen: (monster: Monster, opener: HTMLElement | null) => void;
+};
+
 // 見せ場。最新の 1 体を生成ページと同じ魔法陣の上に浮かべ、横に職業・属性・得意不得意の表を置く（スマホは縦に積む）
+// 画像か「詳しく見る」を押すと詳細のモーダルが開く
 // monster.imageUrl は呼び出し側で isBlobImageUrl を通したものだけを渡す
-const MonsterShowcase = ({ monster }: { monster: Monster }) => {
+const MonsterShowcase = ({ monster, onOpen }: Props) => {
+  // 画像を押して開いた時も、閉じた後は「詳しく見る」へフォーカスを戻す
+  const detailButtonRef = useRef<HTMLButtonElement>(null);
   const job = getJob(monster.job);
   const jobName = job?.ja ?? '職業不明';
   const typeLabel = getTypeLabel(monster.type);
@@ -60,7 +71,8 @@ const MonsterShowcase = ({ monster }: { monster: Monster }) => {
             {BACK_PARTICLES.map((style, index) => <i key={index} style={style} />)}
           </div>
           {/* 画像は元の縦横比のまま見せる（縦長も以前の正方形も切らない） */}
-          <div className={styles.monster}>
+          {/* 画像を押しても詳細を開く（キーボードでは「詳しく見る」のボタンで開く） */}
+          <div className={styles.monster} onClick={() => onOpen(monster, detailButtonRef.current)}>
             <Image
               src={monster.imageUrl}
               alt={`${monster.attribute}属性の${jobName}のモンスター`}
@@ -104,7 +116,15 @@ const MonsterShowcase = ({ monster }: { monster: Monster }) => {
             <p className={styles.note}>得意・不得意は職業と属性で決まる目安です</p>
           </div>
         )}
-        <a download="monster.png" href={monster.imageUrl} className={styles.download}>このモンスターを保存</a>
+        <button
+          type="button"
+          ref={detailButtonRef}
+          className={styles.detail}
+          aria-haspopup="dialog"
+          onClick={(event) => onOpen(monster, event.currentTarget)}
+        >
+          詳しく見る
+        </button>
       </div>
     </div>
   )

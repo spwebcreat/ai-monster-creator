@@ -38,7 +38,7 @@
 
 // 足元を輪の中心（土台の画像の下から 12.5%）の少し上に置く
 .monster {
-  @apply absolute left-1/2 z-[1];
+  @apply absolute left-1/2 z-[1] cursor-pointer;
   bottom: 14%;
   translate: -50% 0;
   animation: float 2.4s ease-in-out infinite;
@@ -119,8 +119,8 @@
   @apply text-[11px] text-gray-400;
 }
 
-.download {
-  @apply block text-center bg-primary text-white font-bold rounded-md py-3 transition-colors hover:bg-slate-800;
+.detail {
+  @apply block w-full text-center bg-primary text-white font-bold rounded-md py-3 transition-colors hover:bg-slate-800;
 }
 
 // 動きを減らす設定の利用者には浮かせず、光も明滅させず、粒子も出さない

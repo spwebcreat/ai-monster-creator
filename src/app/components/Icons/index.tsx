@@ -5,6 +5,7 @@ import {
   ArrowDownOnSquareIcon ,
   SparklesIcon,
 } from '@heroicons/react/24/solid'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 
 interface IconProps {
   className?: string;  // オプショナルに変更
@@ -29,8 +30,16 @@ const IconSparkles = ({ className }: IconProps) => {
   )
 }
 
+// 閉じるボタンの印（細い線の × ）
+const IconClose = ({ className }: IconProps) => {
+  return (
+    <XMarkIcon className={className} />
+  )
+}
+
 export {
   IconShare,
   IconDownload,
-  IconSparkles
+  IconSparkles,
+  IconClose
 }
