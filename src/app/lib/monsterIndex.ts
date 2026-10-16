@@ -15,7 +15,7 @@ export const HIDDEN_MONSTERS_KEY = 'hidden_monsters';
 export const MONSTERS_PAGE_SIZE = 13;
 export const MONSTERS_PAGE_SIZE_MAX = 24;
 
-// all_monsters の score。作成日時は利用者側で付く値のため、未来の日時で先頭に居座れないよう今の時刻で頭打ちにする
+// all_monsters の score。過去のデータの作成日時は利用者側で付いた値のため、未来の日時で先頭に居座れないよう今の時刻で頭打ちにする
 export function toIndexScore(createdAt: string, now = Date.now()): number {
   return Math.min(Date.parse(createdAt), now);
 }

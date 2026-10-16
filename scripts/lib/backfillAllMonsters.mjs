@@ -21,7 +21,7 @@ const REASONS = {
   not_object: { group: 'invalid', label: '値がオブジェクトでない' },
   id: { group: 'invalid', label: 'id が UUID でない' },
   imageUrl: { group: 'invalid', label: '画像の URL が今の保存先の形でない' },
-  createdAt: { group: 'invalid', label: '作成日時が日時として読めない' },
+  createdAt: { group: 'invalid', label: '作成日時が読めない・範囲外（2024-01-01〜今＋1 日）' },
   job: { group: 'invalid', label: '職業が今の一覧に無い（項目が無いものを含む）' },
   attribute: { group: 'invalid', label: '属性が今の属性名（日本語）に無い' },
   type: { group: 'invalid', label: 'タイプが今の一覧に無い' },
@@ -75,11 +75,11 @@ function describeReason(reason, body, extra) {
   }
 }
 
-// 作成日時の年月（日本時間）。読めなければ「不明」
+// 作成日時の年月（日本時間）。読めない・日付として表せない値は「不明」（範囲外の値でも集計を止めない）
 function toMonth(body) {
   const time = typeof body?.createdAt === 'string' ? Date.parse(body.createdAt) : NaN;
-  if (Number.isNaN(time)) return '不明';
-  return new Date(time + 9 * 60 * 60 * 1000).toISOString().slice(0, 7);
+  const date = new Date(time + 9 * 60 * 60 * 1000);
+  return Number.isNaN(date.getTime()) ? '不明' : date.toISOString().slice(0, 7);
 }
 
 // SCAN でキーを全部集める（@vercel/kv の scanIterator は戻るカーソルが文字列だと終わらないため自前で回す）
@@ -149,7 +149,7 @@ export async function backfillAllMonsters({ kv, fetch: fetchFn, apply = false, l
       const body = toObject(values[index]);
       const month = toMonth(body);
       countMonth(month, 'total');
-      const result = checkStoredMonster(key, values[index]);
+      const result = checkStoredMonster(key, values[index], now);
       if ('reason' in result) {
         excluded.push({ key, reason: result.reason, detail: describeReason(result.reason, body) });
       } else if (hiddenIds.has(result.monster.id)) {

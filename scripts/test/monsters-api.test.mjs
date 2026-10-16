@@ -84,13 +84,17 @@ describe('GET /api/monsters', () => {
       [67, { type: 'Mechanical' }], // 今の一覧に無いタイプ → 出さない
       [68, { createdAt: 'yesterday' }], // 日時として読めない → 出さない
       [69, { extra: '<script>' }], // 余分な項目は返さない
+      [71, { createdAt: '+275760-09-13T00:00:00.000Z' }], // 範囲外（遠い未来）→ 出さない
+      [72, { createdAt: '2023-12-31T23:59:59.999Z' }], // 2024 年より前 → 出さない
+      [73, { createdAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString() }], // 今＋1 日より先 → 出さない
+      [74, { createdAt: new Date(Date.now() + 60 * 60 * 1000).toISOString() }], // 今＋1 時間 → 出す
     ];
     for (const [n, overrides] of legacy) {
       fake.setString(keyOf(n), JSON.stringify(makeMonster(n, overrides)));
       fake.zadd('all_monsters', 1_000 + n, keyOf(n));
     }
     const { monsters } = await get('?limit=24');
-    assert.deepEqual(ids(monsters), [69, 64, 63, 62, 61].map(idOf));
+    assert.deepEqual(ids(monsters), [74, 69, 64, 63, 62, 61].map(idOf));
     const byId = Object.fromEntries(monsters.map((monster) => [monster.id, monster]));
     assert.ok(!('gender' in byId[idOf(61)]));
     assert.equal(byId[idOf(61)].job, 'Warrior');
@@ -143,8 +147,9 @@ describe('POST /api/monsters', () => {
     const before = Date.now();
     const response = await post(monster);
     assert.equal(response.status, 201);
-    assert.deepEqual(JSON.parse(fake.getString(keyOf(50))), monster);
-    assert.equal(fake.zscore('all_monsters', keyOf(50)), Date.parse(monster.createdAt));
+    const stored = JSON.parse(fake.getString(keyOf(50)));
+    assert.deepEqual({ ...stored, createdAt: monster.createdAt }, monster);
+    assert.equal(fake.zscore('all_monsters', keyOf(50)), Date.parse(stored.createdAt));
     assert.ok(fake.zscore('recent_monsters', keyOf(50)) >= before);
     // recent_monsters は最新 12 件に切り詰める（all_monsters は切り詰めない）
     assert.equal(fake.zmembers('recent_monsters').length, 12);
@@ -154,11 +159,19 @@ describe('POST /api/monsters', () => {
     assert.equal((await get()).monsters[0].id, idOf(50));
   });
 
-  test('未来の作成日時は今の時刻で頭打ちにして索引に入れる', async () => {
-    const monster = makeMonster(51, { createdAt: '2099-01-01T00:00:00.000Z' });
-    const response = await post(monster);
-    assert.equal(response.status, 201);
-    assert.ok(fake.zscore('all_monsters', keyOf(51)) <= Date.now());
+  test('受け取った作成日時は使わず、サーバーの時刻を付ける', async () => {
+    for (const [n, createdAt] of [[51, '+275760-09-13T00:00:00.000Z'], [52, '2099-01-01T00:00:00.000Z'], [53, undefined]]) {
+      const before = Date.now();
+      const response = await post(makeMonster(n, { createdAt }));
+      const after = Date.now();
+      assert.equal(response.status, 201, String(createdAt));
+      const stored = JSON.parse(fake.getString(keyOf(n)));
+      const time = Date.parse(stored.createdAt);
+      assert.ok(time >= before && time <= after, stored.createdAt);
+      assert.equal(stored.createdAt, new Date(time).toISOString());
+      assert.equal(fake.zscore('all_monsters', keyOf(n)), time);
+      assert.equal((await response.json()).monster.createdAt, stored.createdAt);
+    }
   });
 
   test('同じ id が既にあれば 409 で、中身も索引も変えない', async () => {
@@ -191,7 +204,6 @@ describe('POST /api/monsters', () => {
       { description: undefined },
       { job: undefined },
       { attribute: 'Fire' },
-      { createdAt: '2024-09-07T10:00:00Z' },
     ];
     for (const overrides of legacyShapes) {
       assert.equal((await post(makeMonster(70, overrides))).status, 400, JSON.stringify(overrides));

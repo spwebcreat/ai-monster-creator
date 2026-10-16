@@ -1,5 +1,5 @@
 // 保存するモンスター（KV の monster:<id>）の検証。条件は 2 種類ある:
-// - 保存の検証（checkMonster）: POST /api/monsters が使う。すべての項目を今の許可リストで確かめる
+// - 保存の検証（checkMonster）: POST /api/monsters が使う。すべての項目を今の許可リストで確かめる（作成日時はサーバーで付ける）
 // - 一覧に出す条件（checkListedMonster）: 一覧の読み出し・管理の窓口・索引を作るスクリプト（scripts/backfill-all-monsters.mjs）が使う。
 //   過去のデータも出せるよう保存の検証より緩く、性別と特徴は条件にせず整えてから返す
 // スクリプトは Node から直接読むため、このファイルは KV や Next の機能に依存させない
@@ -17,8 +17,7 @@ export type MonsterRejectReason =
   | 'attribute'
   | 'type'
   | 'job'
-  | 'gender'
-  | 'createdAt';
+  | 'gender';
 
 // 一覧に出す条件に合わなかった項目（スクリプトが外した理由として数える）
 export type ListedMonsterRejectReason = 'not_object' | 'id' | 'imageUrl' | 'createdAt' | 'job' | 'attribute' | 'type';
@@ -39,12 +38,9 @@ const TYPE_VALUES = MONSTER_TYPES.map((item) => item.en);
 const JOB_VALUES = JOBS.map((item) => item.en);
 const GENDER_VALUES = GENDERS.map((item) => item.en);
 
-// toISOString() の形の日時文字列か
-const isIsoDateString = (value: unknown): value is string => {
-  if (typeof value !== 'string') return false;
-  const time = Date.parse(value);
-  return !Number.isNaN(time) && new Date(time).toISOString() === value;
-};
+// 一覧に出す作成日時の範囲（サービスを始める前・今＋1 日より先の日時は、利用者が書き換えた値として扱う）
+const LISTED_CREATED_AT_MIN = Date.UTC(2024, 0, 1);
+const LISTED_CREATED_AT_MAX_AHEAD_MS = 24 * 60 * 60 * 1000;
 
 // 文字数（絵文字などを途中で割らないよう、コードポイントで数える）が上限を超えれば切る
 const truncate = (text: string, maxLength: number) => {
@@ -52,10 +48,11 @@ const truncate = (text: string, maxLength: number) => {
   return chars.length > maxLength ? chars.slice(0, maxLength).join('') : text;
 };
 
-// 受け取ったモンスターを許可リストで検証し、許可した項目だけを詰め直す。合わなければ最初に外れた項目を返す
-export function checkMonster(body: unknown): { monster: Monster } | { reason: MonsterRejectReason } {
+// 受け取ったモンスターを許可リストで検証し、許可した項目だけを詰め直す。合わなければ最初に外れた項目を返す。
+// 作成日時は受け取った値を使わず、サーバーの時刻を付ける（並び順や表示の日付を利用者が決められないように）
+export function checkMonster(body: unknown, now = Date.now()): { monster: Monster } | { reason: MonsterRejectReason } {
   if (!body || typeof body !== 'object') return { reason: 'not_object' };
-  const { id, imageUrl, description, attribute, type, job, gender, createdAt } = body as Record<string, unknown>;
+  const { id, imageUrl, description, attribute, type, job, gender } = body as Record<string, unknown>;
 
   if (!isMonsterId(id)) return { reason: 'id' };
   if (!isBlobImageUrl(imageUrl)) return { reason: 'imageUrl' };
@@ -66,8 +63,8 @@ export function checkMonster(body: unknown): { monster: Monster } | { reason: Mo
   if (!isOneOf(type, TYPE_VALUES)) return { reason: 'type' };
   if (!isOneOf(job, JOB_VALUES)) return { reason: 'job' };
   if (!isOneOf(gender, GENDER_VALUES)) return { reason: 'gender' };
-  if (!isIsoDateString(createdAt)) return { reason: 'createdAt' };
 
+  const createdAt = new Date(now).toISOString();
   return { monster: { id, imageUrl, description: trimmedDescription, attribute, type, job, gender, createdAt } };
 }
 
@@ -77,17 +74,23 @@ export function parseMonster(body: unknown): Monster | null {
   return 'monster' in result ? result.monster : null;
 }
 
-// 一覧に出してよいか（表示用の条件）。id・画像の URL・作成日時（日時として読めればよい）・職業・属性（今の日本語名）・タイプを確かめる。
+// 一覧に出してよいか（表示用の条件）。id・画像の URL・作成日時（日時として読め、2024-01-01 以降・今＋1 日まで）・
+// 職業・属性（今の日本語名）・タイプを確かめる。
 // 性別と特徴は条件にせず、返す前に整える: 性別は今の選択肢に無ければ項目ごと省き、特徴は文字列でなければ空文字・上限の字数で切る。
 // 作成日時は toISOString() の形に揃える。許可した項目だけを詰め直す
-export function checkListedMonster(body: unknown): { monster: Monster } | { reason: ListedMonsterRejectReason } {
+export function checkListedMonster(
+  body: unknown,
+  now = Date.now()
+): { monster: Monster } | { reason: ListedMonsterRejectReason } {
   if (!body || typeof body !== 'object') return { reason: 'not_object' };
   const { id, imageUrl, description, attribute, type, job, gender, createdAt } = body as Record<string, unknown>;
 
   if (!isMonsterId(id)) return { reason: 'id' };
   if (!isBlobImageUrl(imageUrl)) return { reason: 'imageUrl' };
   const time = typeof createdAt === 'string' ? Date.parse(createdAt) : NaN;
-  if (Number.isNaN(time)) return { reason: 'createdAt' };
+  if (Number.isNaN(time) || time < LISTED_CREATED_AT_MIN || time > now + LISTED_CREATED_AT_MAX_AHEAD_MS) {
+    return { reason: 'createdAt' };
+  }
   if (!isOneOf(job, JOB_VALUES)) return { reason: 'job' };
   if (!isOneOf(attribute, ATTRIBUTE_NAMES)) return { reason: 'attribute' };
   if (!isOneOf(type, TYPE_VALUES)) return { reason: 'type' };
@@ -110,7 +113,8 @@ export function checkListedMonster(body: unknown): { monster: Monster } | { reas
 // 索引の要素（monster:<id>）と中身の id が食い違うものも外す（外す・戻す操作が別のモンスターに効かないように）
 export function checkStoredMonster(
   key: string,
-  value: unknown
+  value: unknown,
+  now = Date.now()
 ): { monster: Monster } | { reason: StoredMonsterRejectReason } {
   if (value === null || value === undefined) return { reason: 'missing' };
   let body = value;
@@ -121,7 +125,7 @@ export function checkStoredMonster(
       return { reason: 'unreadable' };
     }
   }
-  const result = checkListedMonster(body);
+  const result = checkListedMonster(body, now);
   if ('reason' in result) return result;
   if (key !== monsterKey(result.monster.id)) return { reason: 'key_mismatch' };
   return result;
