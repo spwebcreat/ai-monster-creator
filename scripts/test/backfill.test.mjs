@@ -41,6 +41,12 @@ function seedStore() {
   fake.setHash(keyOf(10), { id: idOf(10) });
   fake.setString(keyOf(11), 'garbage');
   put(keyOf(12), makeMonster(13));
+  // 過去データの形: 属性が旧い名前（英名）は外す。性別が属性の英名・特徴が長い／無い・ミリ秒の無い日時は入れる
+  put(keyOf(18), makeMonster(18, { attribute: 'Fire' }));
+  put(keyOf(15), makeMonster(15, { gender: 'Holy' }), { include: true });
+  put(keyOf(16), makeMonster(16, { description: 'あ'.repeat(335) }), { include: true });
+  put(keyOf(17), makeMonster(17, { description: undefined }), { include: true });
+  put(keyOf(19), makeMonster(19, { createdAt: '2024-09-07T10:00:00Z' }), { include: true });
   // 一覧から外したもの
   put(keyOf(7), makeMonster(7));
   fake.setHash('hidden_monsters', { [idOf(7)]: JSON.stringify({ hiddenAt: 1, score: 2 }) });
@@ -87,18 +93,19 @@ describe('backfillAllMonsters', () => {
 
     assert.deepEqual(writes(), []);
     assert.equal(fake.snapshot(), before);
-    assert.equal(summary.total, 613);
-    assert.equal(summary.add, 604);
+    assert.equal(summary.total, 618);
+    assert.equal(summary.add, 608);
     assert.equal(summary.alreadyIndexed, 1);
-    assert.equal(summary.invalid, 6);
+    assert.equal(summary.invalid, 7);
     assert.equal(summary.hidden, 1);
     assert.equal(summary.image, 2);
     assert.deepEqual(
-      Object.fromEntries(['imageUrl', 'job', 'id', 'missing', 'unreadable', 'key_mismatch', 'hidden', 'image_status', 'image_unreachable']
+      Object.fromEntries(['imageUrl', 'job', 'attribute', 'id', 'missing', 'unreadable', 'key_mismatch', 'hidden', 'image_status', 'image_unreachable']
         .map((reason) => [reason, summary.excluded.filter((item) => item.reason === reason).map((item) => item.key)])),
       {
         imageUrl: [keyOf(4)],
         job: [keyOf(5)],
+        attribute: [keyOf(18)],
         id: ['monster:not-a-uuid'],
         missing: [keyOf(10)],
         unreadable: [keyOf(11)],
@@ -109,13 +116,13 @@ describe('backfillAllMonsters', () => {
       }
     );
     assert.equal(summary.months['2024-11'].add >= 1, true);
-    assert.equal(Object.values(summary.months).reduce((sum, row) => sum + row.total, 0), 613);
-    assert.equal(Object.values(summary.months).reduce((sum, row) => sum + row.add, 0), 604);
+    assert.equal(Object.values(summary.months).reduce((sum, row) => sum + row.total, 0), 618);
+    assert.equal(Object.values(summary.months).reduce((sum, row) => sum + row.add, 0), 608);
 
     const output = lines.join('\n');
-    assert.match(output, /全件（monster:\*）: 613/);
-    assert.match(output, /入れる: 604（うち既に索引にある: 1）/);
-    assert.match(output, /検証で外す: 6/);
+    assert.match(output, /全件（monster:\*）: 618/);
+    assert.match(output, /入れる: 608（うち既に索引にある: 1）/);
+    assert.match(output, /条件に合わず外す: 7/);
     assert.match(output, /画像が無くて外す: 2/);
     assert.match(output, /host=api-images-getimg\.example\.com/);
     assert.match(output, /status=404/);
@@ -126,7 +133,7 @@ describe('backfillAllMonsters', () => {
 
     // HEAD だけを、画像の保存先にだけ送る（通信できない時は 1 回だけ試し直す）
     assert.ok(calls.every((call) => call.method === 'HEAD' && call.url.startsWith(`${BLOB_ORIGIN}/monsters/`)));
-    assert.equal(calls.length, 606 + 2);
+    assert.equal(calls.length, 610 + 2);
   });
 
   test('--apply は all_monsters にだけ ZADD し（score は作成日時）、2 回流しても同じ結果', async () => {
@@ -135,13 +142,13 @@ describe('backfillAllMonsters', () => {
     const { fetchStub } = stubFetch();
     const summary = await backfillAllMonsters({ kv, fetch: fetchStub, apply: true, log: () => {} });
 
-    assert.equal(summary.indexCount, 604);
+    assert.equal(summary.indexCount, 608);
     assert.deepEqual(new Set(fake.zmembers('all_monsters')), new Set(expected.keys()));
     for (const [key, score] of expected) assert.equal(fake.zscore('all_monsters', key), score, key);
     assert.equal(snapshotWithout('all_monsters'), othersBefore);
     assert.ok(writes().every(([name, key]) => name === 'zadd' && key === 'all_monsters'));
     // 一覧から外したもの・検証に合わないもの・画像が無いものは入らない
-    for (const n of [4, 5, 7, 8, 9, 10, 11, 12]) assert.equal(fake.zscore('all_monsters', keyOf(n)), null, `monster ${n}`);
+    for (const n of [4, 5, 7, 8, 9, 10, 11, 12, 18]) assert.equal(fake.zscore('all_monsters', keyOf(n)), null, `monster ${n}`);
 
     const afterFirst = fake.snapshot();
     await backfillAllMonsters({ kv, fetch: stubFetch().fetchStub, apply: true, log: () => {} });
@@ -172,11 +179,11 @@ describe('scripts/backfill-all-monsters.mjs（入口）', () => {
       const dryRun = await runScript([`--env-file=${envFile}`, '--import', stub, script]);
       assert.equal(dryRun.code, 0, dryRun.stderr);
       // 差し替えの HEAD は URL に missing を含むものだけ 404（unreachable・flaky は 200 になる）
-      assert.match(dryRun.stdout, /入れる: 605（うち既に索引にある: 1）/);
+      assert.match(dryRun.stdout, /入れる: 609（うち既に索引にある: 1）/);
       assert.deepEqual(writes(), []);
       const applied = await runScript([`--env-file=${envFile}`, '--import', stub, script, '--apply']);
       assert.equal(applied.code, 0, applied.stderr);
-      assert.match(applied.stdout, /書き込み完了: 605 件を all_monsters へ ZADD（索引の件数: 605）/);
+      assert.match(applied.stdout, /書き込み完了: 609 件を all_monsters へ ZADD（索引の件数: 609）/);
       for (const output of [dryRun.stdout + dryRun.stderr, applied.stdout + applied.stderr]) {
         assert.ok(!output.includes(fake.url) && !output.includes(fake.token));
         assert.ok(!output.includes('MODULE_TYPELESS_PACKAGE_JSON'));

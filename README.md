@@ -83,10 +83,11 @@ npm run dev
 
 ## 一覧の読み込み（API）
 - `GET /api/monsters?offset=<整数>&limit=<整数>`: 全件の索引 `all_monsters`（score は作成日時のミリ秒）を新しい順に読む。`limit` は既定 13・上限 24、`offset` は既定 0（数でない・負の値は既定に戻す）
-- 応答は `{ monsters, todayCount, nextOffset }`。`nextOffset` は続きを読む時に渡す offset（続きが無ければ `null`）。読めない・検証に合わないデータは飛ばすため、件数が `limit` に満たないことがある
+- 応答は `{ monsters, todayCount, nextOffset }`。`nextOffset` は続きを読む時に渡す offset（続きが無ければ `null`）。読めない・一覧に出す条件に合わないデータは飛ばすため、件数が `limit` に満たないことがある
+- 一覧に出す条件（`checkListedMonster`）は保存の検証より緩い: id が UUID・画像が今の保存先の URL・作成日時が日時として読める・職業／属性（日本語名）／タイプが今の一覧にある。性別と特徴は条件にせず、性別は今の選択肢に無ければ項目ごと省き、特徴は文字列でなければ空文字・200 字で切って返す
 - `all_monsters` が最新 12 件の索引 `recent_monsters` より少ない間（索引を作る前）は、`recent_monsters` を読む
 - サーバー側の描画は `getMonsters({ offset, limit })` で同じ形を受け取る
-- `POST /api/monsters` は両方の索引に入れる。同じ id が既にあれば 409 を返し、上書きしない
+- `POST /api/monsters` は保存の検証（すべての項目を今の許可リストで確かめる）に合うものだけを保存し、両方の索引に入れる。同じ id が既にあれば 409 を返し、上書きしない
 
 ## 管理モード（一覧から外す）
 サイトの管理者が、一覧に出したくないモンスターを外すための窓口です。`monster:<id>` と画像は消さず、索引から外すだけです。
@@ -107,7 +108,7 @@ node --env-file=.env.local scripts/backfill-all-monsters.mjs
 # 書き込む
 node --env-file=.env.local scripts/backfill-all-monsters.mjs --apply
 ```
-- `monster:*` をすべて読み、POST と同じ検証に合い、一覧から外しておらず、画像に HEAD を送って 200 が返るものだけを入れる
+- `monster:*` をすべて読み、一覧に出す条件（GET と同じ）に合い、一覧から外しておらず、画像に HEAD を送って 200 が返るものだけを入れる
 - 書き込むのは `all_monsters` への ZADD だけ（ほかのキーは変えない）。何度流しても同じ結果になる
 
 ## 試験

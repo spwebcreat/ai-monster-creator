@@ -86,7 +86,7 @@ export async function GET(request: Request) {
         ? await kv.zrange<string[]>(indexKey, offset, offset + limit - 1, { rev: true })
         : [];
       const values = keys.length > 0 ? await kv.mget<unknown[]>(...keys) : [];
-      // 読めない・検証に合わないデータは飛ばす（件数が limit に満たなくても、続きの位置は索引上で決める）
+      // 読めない・一覧に出す条件に合わないデータは飛ばす（件数が limit に満たなくても、続きの位置は索引上で決める）
       monsters = values.flatMap((value, index) => {
         const result = checkStoredMonster(String(keys[index]), value);
         return 'monster' in result ? [result.monster] : [];

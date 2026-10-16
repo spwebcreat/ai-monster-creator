@@ -2,7 +2,7 @@
 //   試し実行（既定・書き込まない）: node --env-file=.env.local scripts/backfill-all-monsters.mjs
 //   書き込む:                      node --env-file=.env.local scripts/backfill-all-monsters.mjs --apply
 // 接続先は KV_REST_API_URL / KV_REST_API_TOKEN（アプリと同じ・値は表示しない）。
-// POST /api/monsters と同じ検証に合い、一覧から外しておらず、画像の HEAD が 200 のものだけを ZADD する。
+// 一覧に出す条件（GET /api/monsters と同じ）に合い、一覧から外しておらず、画像の HEAD が 200 のものだけを ZADD する。
 // 書き込むのは all_monsters だけ（ほかのキーは変えない）。何度流しても同じ結果になる
 import './lib/registerSrcAlias.mjs';
 

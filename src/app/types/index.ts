@@ -29,7 +29,8 @@ export interface Monster {
   attribute: string;
   type: string;
   job: string;
-  gender: string;
+  // 保存（POST）では必須。一覧の読み出しでは、過去のデータの性別が今の選択肢に無い時は省く
+  gender?: string;
   createdAt: string;
 
 }

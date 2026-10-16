@@ -1,6 +1,7 @@
 // all_monsters（一覧の全件の索引）を、KV に残る monster:* から作る本体。
 // 入口は scripts/backfill-all-monsters.mjs。試験（scripts/test/）からは KV と fetch を差し替えて直接呼ぶ。
-// 検証は POST /api/monsters と同じ関数（src/app/lib/monsterRecord.ts）を使う。
+// 入れる条件は一覧の読み出し（GET /api/monsters）と同じ「一覧に出す条件」（src/app/lib/monsterRecord.ts の checkListedMonster）。
+// 保存（POST）の検証より緩く、性別と特徴は問わない。
 // 書き込むのは apply の時の all_monsters への ZADD だけ（ほかのキーは変えない・何度流しても同じ結果）。
 // 読み込むには先に ./registerSrcAlias.mjs を import しておく
 import { checkStoredMonster } from '@/app/lib/monsterRecord';
@@ -20,12 +21,10 @@ const REASONS = {
   not_object: { group: 'invalid', label: '値がオブジェクトでない' },
   id: { group: 'invalid', label: 'id が UUID でない' },
   imageUrl: { group: 'invalid', label: '画像の URL が今の保存先の形でない' },
-  description: { group: 'invalid', label: '特徴が文字列でない・長すぎる' },
-  attribute: { group: 'invalid', label: '属性が許可リストに無い' },
-  type: { group: 'invalid', label: 'タイプが許可リストに無い' },
-  job: { group: 'invalid', label: '職業が許可リストに無い' },
-  gender: { group: 'invalid', label: '性別が許可リストに無い' },
-  createdAt: { group: 'invalid', label: '作成日時の形が違う' },
+  createdAt: { group: 'invalid', label: '作成日時が日時として読めない' },
+  job: { group: 'invalid', label: '職業が今の一覧に無い（項目が無いものを含む）' },
+  attribute: { group: 'invalid', label: '属性が今の属性名（日本語）に無い' },
+  type: { group: 'invalid', label: 'タイプが今の一覧に無い' },
   key_mismatch: { group: 'invalid', label: 'キーと中身の id が食い違う' },
   hidden: { group: 'hidden', label: '一覧から外したもの（hidden_monsters）' },
   image_status: { group: 'image', label: '画像の HEAD が 200 以外' },
@@ -59,13 +58,10 @@ function describeReason(reason, body, extra) {
         return `imageUrl=${short(url)}`;
       }
     }
-    case 'description':
-      return typeof body?.description === 'string' ? `${body.description.length} 字` : `型=${typeof body?.description}`;
     case 'id':
     case 'attribute':
     case 'type':
     case 'job':
-    case 'gender':
     case 'createdAt':
       return `${reason}=${short(body?.[reason])}`;
     case 'key_mismatch':
@@ -200,7 +196,7 @@ export async function backfillAllMonsters({ kv, fetch: fetchFn, apply = false, l
   log('');
   log(`全件（monster:*）: ${summary.total}`);
   log(`  入れる: ${summary.add}（うち既に索引にある: ${summary.alreadyIndexed}）`);
-  log(`  検証で外す: ${summary.invalid}`);
+  log(`  条件に合わず外す: ${summary.invalid}`);
   log(`  画像が無くて外す: ${summary.image}`);
   log(`  一覧から外したもの: ${summary.hidden}`);
 

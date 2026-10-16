@@ -73,6 +73,35 @@ describe('GET /api/monsters', () => {
     assert.equal(rest.nextOffset, null);
   });
 
+  test('過去データの形も一覧に出す条件で読み、性別と特徴は整えて返す', async () => {
+    const legacy = [
+      [61, { gender: 'Holy' }], // 性別が属性の英名 → 性別を省いて出す
+      [62, { description: 'あ'.repeat(335) }], // 長い特徴 → 200 字で切る
+      [63, { description: undefined, gender: undefined }], // 特徴・性別が無い
+      [64, { createdAt: '2024-09-07T10:00:00Z' }], // ミリ秒の無い日時 → toISOString の形に揃える
+      [65, { job: undefined }], // 職業が無い → 出さない
+      [66, { attribute: 'Fire' }], // 旧い属性名 → 出さない
+      [67, { type: 'Mechanical' }], // 今の一覧に無いタイプ → 出さない
+      [68, { createdAt: 'yesterday' }], // 日時として読めない → 出さない
+      [69, { extra: '<script>' }], // 余分な項目は返さない
+    ];
+    for (const [n, overrides] of legacy) {
+      fake.setString(keyOf(n), JSON.stringify(makeMonster(n, overrides)));
+      fake.zadd('all_monsters', 1_000 + n, keyOf(n));
+    }
+    const { monsters } = await get('?limit=24');
+    assert.deepEqual(ids(monsters), [69, 64, 63, 62, 61].map(idOf));
+    const byId = Object.fromEntries(monsters.map((monster) => [monster.id, monster]));
+    assert.ok(!('gender' in byId[idOf(61)]));
+    assert.equal(byId[idOf(61)].job, 'Warrior');
+    assert.equal(Array.from(byId[idOf(62)].description).length, 200);
+    assert.equal(byId[idOf(63)].description, '');
+    assert.ok(!('gender' in byId[idOf(63)]));
+    assert.equal(byId[idOf(64)].createdAt, '2024-09-07T10:00:00.000Z');
+    assert.ok(!('extra' in byId[idOf(69)]));
+    assert.equal(byId[idOf(69)].gender, 'male');
+  });
+
   test('all_monsters が空なら recent_monsters を読む', async () => {
     for (const n of range(1, 3)) seed(n, { all: false, recent: true });
     const page = await get();
@@ -153,6 +182,21 @@ describe('POST /api/monsters', () => {
     assert.equal((await post(makeMonster(54))).status, 409);
     assert.equal(fake.zscore('all_monsters', keyOf(54)), null);
     assert.equal(fake.zscore('recent_monsters', keyOf(54)), null);
+  });
+
+  test('保存の検証は厳しいまま（過去データの形は 400 で、何も書かない）', async () => {
+    const legacyShapes = [
+      { gender: 'Holy' },
+      { description: 'あ'.repeat(335) },
+      { description: undefined },
+      { job: undefined },
+      { attribute: 'Fire' },
+      { createdAt: '2024-09-07T10:00:00Z' },
+    ];
+    for (const overrides of legacyShapes) {
+      assert.equal((await post(makeMonster(70, overrides))).status, 400, JSON.stringify(overrides));
+    }
+    assert.deepEqual(fake.keys(), []);
   });
 
   test('検証に合わないものは 400 で、何も書かない', async () => {
