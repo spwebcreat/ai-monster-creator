@@ -33,7 +33,8 @@ const MonsterForm = () => {
     setIsClient(true);
     const fetchTodayCount = async () => {
       try {
-        const countResponse = await fetch('/api/monsters');
+        // 今日の生成回数だけを使うので、一覧は 1 件だけ読む（末尾の「/」は trailingSlash に合わせる。付けないと 308 で転送される）
+        const countResponse = await fetch('/api/monsters/?limit=1');
         const { todayCount } = await countResponse.json();
         setTodayCount(todayCount);
       } catch (error) {
@@ -68,7 +69,7 @@ const MonsterForm = () => {
 
     try {
       // 画像の生成はサーバー側（getimg.ai の鍵はブラウザに出さない）
-      const generateResponse = await fetch('/api/generate', {
+      const generateResponse = await fetch('/api/generate/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description, job, gender, attribute, type, style })
@@ -88,7 +89,7 @@ const MonsterForm = () => {
         setTodayCount(generateData.todayCount);
       }
 
-      const saveResponse = await fetch('/api/saveImage', {
+      const saveResponse = await fetch('/api/saveImage/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageUrl: generateData.imageUrl })
@@ -118,7 +119,7 @@ const MonsterForm = () => {
         createdAt: new Date().toISOString(),
       };
 
-      const monsterResponse = await fetch('/api/monsters', {
+      const monsterResponse = await fetch('/api/monsters/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newMonster),
