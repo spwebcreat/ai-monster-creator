@@ -17,7 +17,9 @@ class GetImgApiError extends Error {
 // 鍵が設定されているか（未設定なら getimg.ai を呼ばず、回数も数えない）
 const isGetImgConfigured = () => Boolean(process.env.GETIMG_API_KEY);
 
-// 指示文（プロンプト）の組み立て。値は /api/generate で許可リスト検証済みのものを受け取る
+// 指示文（プロンプト）の組み立て。値は /api/generate で許可リスト検証済みのものを受け取る（description は英語）。
+// FLUX.1 schnell は指示文の先頭 256 トークン（T5）しか読まず、先頭 77 トークン（CLIP）で全体の印象を決める。
+// そのため重要な順に並べる: 主題 → 特徴 → 全身の指定 → … → 職業 → オーラの演出（切れても困らないものを最後に）
 const buildMonsterPrompt = ({
   description,
   attribute,
@@ -29,8 +31,15 @@ const buildMonsterPrompt = ({
 
   const jobInfo = JOBS.find(j => j.en === job);
 
-  // 重要な指示を最初に配置
-  let basePrompt = `Full-body portrait of a ${gender} ${type.toLowerCase()} character, entire figure visible from head to toe. ${attribute}-themed. Dynamic action pose showcasing abilities.`;
+  let basePrompt = `Full-body portrait of a ${gender} ${type.toLowerCase()} character, entire figure visible from head to toe.`;
+
+  // 特徴（利用者の自由入力）は主題の直後に置く
+  if (description) {
+    basePrompt += ` ${description}.`;
+  }
+
+  basePrompt += ' Wide shot to include full figure, feet inside the frame.';
+  basePrompt += ` ${attribute}-themed. Dynamic action pose showcasing abilities.`;
 
   // 性別と体型の特徴を追加
   switch (gender) {
@@ -52,12 +61,7 @@ const buildMonsterPrompt = ({
     basePrompt += ` Animal face with ${attribute} traits, anthropomorphic body.`;
   }
 
-  // 職業の特徴を詳細に追加
-  if (jobInfo) {
-    basePrompt += ` ${jobInfo.prompt} ${jobInfo.desc}`;
-  }
-
-  // スタイルに基づいてプロンプトを調整
+  // スタイルに基づいてプロンプトを調整（長い職業の文より前に置き、切れないようにする）
   if (style === 'Semi-realistic') {
     basePrompt += ' Semi-realistic style: Detailed textures, natural proportions, subtle lighting effects.';
   } else {
@@ -65,16 +69,13 @@ const buildMonsterPrompt = ({
     basePrompt += ' Anime style: Bold lines, vibrant colors, large expressive eyes, exaggerated features while maintaining realism.';
   }
 
-  // 属性効果を追加
-  basePrompt += ` Striking ${attribute} aura/effects emanating from the character and their equipment.`;
-
-  // 説明を追加
-  if (description) {
-    basePrompt += ` ${description}.`;
+  // 職業の特徴を詳細に追加（日本語の desc は入れない。FLUX は日本語を読めない）
+  if (jobInfo) {
+    basePrompt += ` ${jobInfo.prompt}`;
   }
 
-  // 重要な指示を最後にも追加
-  basePrompt += ' Ensure the entire body is visible within the frame, from head to toe. Wide shot to include full figure.';
+  // 属性効果を追加（特徴が長くて 256 トークンを超えた時は、末尾のここから切れる）
+  basePrompt += ` Striking ${attribute} aura/effects emanating from the character and their equipment.`;
 
   return basePrompt;
 }
