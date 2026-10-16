@@ -47,6 +47,8 @@ function seedStore() {
   put(keyOf(16), makeMonster(16, { description: 'あ'.repeat(335) }), { include: true });
   put(keyOf(17), makeMonster(17, { description: undefined }), { include: true });
   put(keyOf(19), makeMonster(19, { createdAt: '2024-09-07T10:00:00Z' }), { include: true });
+  // 作成日時が範囲外（日付として表せる最大の値）。外し、年月の集計は「不明」に入れて止まらない
+  put(keyOf(20), makeMonster(20, { createdAt: '+275760-09-13T00:00:00.000Z' }));
   // 一覧から外したもの
   put(keyOf(7), makeMonster(7));
   fake.setHash('hidden_monsters', { [idOf(7)]: JSON.stringify({ hiddenAt: 1, score: 2 }) });
@@ -93,19 +95,20 @@ describe('backfillAllMonsters', () => {
 
     assert.deepEqual(writes(), []);
     assert.equal(fake.snapshot(), before);
-    assert.equal(summary.total, 618);
+    assert.equal(summary.total, 619);
     assert.equal(summary.add, 608);
     assert.equal(summary.alreadyIndexed, 1);
-    assert.equal(summary.invalid, 7);
+    assert.equal(summary.invalid, 8);
     assert.equal(summary.hidden, 1);
     assert.equal(summary.image, 2);
     assert.deepEqual(
-      Object.fromEntries(['imageUrl', 'job', 'attribute', 'id', 'missing', 'unreadable', 'key_mismatch', 'hidden', 'image_status', 'image_unreachable']
+      Object.fromEntries(['imageUrl', 'job', 'attribute', 'createdAt', 'id', 'missing', 'unreadable', 'key_mismatch', 'hidden', 'image_status', 'image_unreachable']
         .map((reason) => [reason, summary.excluded.filter((item) => item.reason === reason).map((item) => item.key)])),
       {
         imageUrl: [keyOf(4)],
         job: [keyOf(5)],
         attribute: [keyOf(18)],
+        createdAt: [keyOf(20)],
         id: ['monster:not-a-uuid'],
         missing: [keyOf(10)],
         unreadable: [keyOf(11)],
@@ -116,13 +119,14 @@ describe('backfillAllMonsters', () => {
       }
     );
     assert.equal(summary.months['2024-11'].add >= 1, true);
-    assert.equal(Object.values(summary.months).reduce((sum, row) => sum + row.total, 0), 618);
+    assert.deepEqual(summary.months['不明'], { total: 3, add: 0 });
+    assert.equal(Object.values(summary.months).reduce((sum, row) => sum + row.total, 0), 619);
     assert.equal(Object.values(summary.months).reduce((sum, row) => sum + row.add, 0), 608);
 
     const output = lines.join('\n');
-    assert.match(output, /全件（monster:\*）: 618/);
+    assert.match(output, /全件（monster:\*）: 619/);
     assert.match(output, /入れる: 608（うち既に索引にある: 1）/);
-    assert.match(output, /条件に合わず外す: 7/);
+    assert.match(output, /条件に合わず外す: 8/);
     assert.match(output, /画像が無くて外す: 2/);
     assert.match(output, /host=api-images-getimg\.example\.com/);
     assert.match(output, /status=404/);
@@ -148,7 +152,7 @@ describe('backfillAllMonsters', () => {
     assert.equal(snapshotWithout('all_monsters'), othersBefore);
     assert.ok(writes().every(([name, key]) => name === 'zadd' && key === 'all_monsters'));
     // 一覧から外したもの・検証に合わないもの・画像が無いものは入らない
-    for (const n of [4, 5, 7, 8, 9, 10, 11, 12, 18]) assert.equal(fake.zscore('all_monsters', keyOf(n)), null, `monster ${n}`);
+    for (const n of [4, 5, 7, 8, 9, 10, 11, 12, 18, 20]) assert.equal(fake.zscore('all_monsters', keyOf(n)), null, `monster ${n}`);
 
     const afterFirst = fake.snapshot();
     await backfillAllMonsters({ kv, fetch: stubFetch().fetchStub, apply: true, log: () => {} });

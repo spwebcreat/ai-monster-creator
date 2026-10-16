@@ -5,11 +5,13 @@ import { checkStoredMonster, isMonsterId, monsterKey } from '@/app/lib/monsterRe
 import { ALL_MONSTERS_KEY, HIDDEN_MONSTERS_KEY, RECENT_MONSTERS_KEY, toIndexScore } from '@/app/lib/monsterIndex';
 
 export const dynamic = 'force-dynamic';
+// KV への問い合わせ（@vercel/kv）の応答を Next に保存させない（GET だけの窓口では既定で保存され、古い値を返すため）
+export const fetchCache = 'force-no-store';
 
 // 本文 { id } のモンスターを一覧（all_monsters・recent_monsters）から外す。monster:<id> と画像は消さない。
 // 戻せるよう、外した時刻と元の score を hidden_monsters に残す
 export async function POST(request: Request) {
-  const guard = guardAdminRequest(request, { sameOrigin: true, session: true });
+  const guard = await guardAdminRequest(request, { sameOrigin: true, session: true });
   if ('response' in guard) return guard.response;
 
   const body: unknown = await request.json().catch(() => null);

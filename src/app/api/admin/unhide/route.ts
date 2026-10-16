@@ -4,11 +4,13 @@ import { checkStoredMonster, isMonsterId, monsterKey } from '@/app/lib/monsterRe
 import { ALL_MONSTERS_KEY, HIDDEN_MONSTERS_KEY, toIndexScore } from '@/app/lib/monsterIndex';
 
 export const dynamic = 'force-dynamic';
+// KV への問い合わせ（@vercel/kv）の応答を Next に保存させない（GET だけの窓口では既定で保存され、古い値を返すため）
+export const fetchCache = 'force-no-store';
 
 // hidden_monsters の記録から元の score を読み、本文 { id } のモンスターを all_monsters に戻す
 // （recent_monsters には戻さない）
 export async function POST(request: Request) {
-  const guard = guardAdminRequest(request, { sameOrigin: true, session: true });
+  const guard = await guardAdminRequest(request, { sameOrigin: true, session: true });
   if ('response' in guard) return guard.response;
 
   const body: unknown = await request.json().catch(() => null);
