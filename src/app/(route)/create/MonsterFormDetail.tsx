@@ -66,7 +66,7 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
             type="text" 
             value={description} 
             onChange={(e) => setDescription(e.target.value)} 
-            placeholder="英語入力推奨 例: cute woman angry etc..."
+            placeholder="日本語でも英語でも入力できます 例: 赤いマント、金色の瞳、笑顔"
             autoComplete='off'
             maxLength={DESCRIPTION_MAX_LENGTH}
           />

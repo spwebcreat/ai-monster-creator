@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
 import { DESCRIPTION_MAX_LENGTH, GENDERS, JOBS, MONSTER_ATTRIBUTES, MONSTER_STYLES, MONSTER_TYPES } from '@/app/constans/atributes';
 import { GetImgApiError, buildMonsterPrompt, fetchMonsterImg, isGetImgConfigured } from '@/app/lib/getImgApi';
+import { toPromptDescription } from '@/app/lib/translateDescription';
 import { DAILY_GENERATION_LIMIT, getGenerationCountKey } from '@/app/lib/generationLimit';
 import { GenerateRequestBody } from '@/app/types';
 
-// getimg.ai の応答待ち（getImgApi 側で 25 秒で打ち切る）に余裕を持たせる
-export const maxDuration = 30;
+// 特徴の英訳（4.5 秒で打ち切る）と getimg.ai の応答待ち（25 秒で打ち切る）に余裕を持たせる
+export const maxDuration = 40;
 
 const isOneOf = (value: unknown, list: { en: string }[]): value is string =>
   typeof value === 'string' && list.some((item) => item.en === value);
@@ -78,7 +79,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const imageUrl = await fetchMonsterImg(buildMonsterPrompt(input));
+    // 特徴は英語にしてから指示文へ入れる（日本語のままだと FLUX が読めない）。
+    // 英訳は回数を数えた後にだけ呼ぶ（上限を超えて英訳だけを使われないように）。失敗しても例外は投げず生成を続ける
+    const promptDescription = await toPromptDescription(input.description);
+    const imageUrl = await fetchMonsterImg(buildMonsterPrompt({ ...input, description: promptDescription }));
     return NextResponse.json({ imageUrl, todayCount });
   } catch (error) {
     // 数え戻すのは getimg.ai が 4xx で断った時だけ（処理されておらず、課金もされていない）。

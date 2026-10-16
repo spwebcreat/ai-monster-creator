@@ -16,6 +16,7 @@ AI Monster Generatorは、ユーザーが入力した特徴と属性を基にAI�
 - State Management: React Hooks (useState, useEffect)
 - API Requests: fetch（getimg.ai へはサーバー側の `/api/generate` から呼び出す）
 - AI画像生成: GetImg.ai API (FLUX.1 [schnell] Text to Image)
+- 特徴の英訳: Anthropic API（Claude Haiku 5.5・日本語などの特徴を指示文用の英語に直す）
 - アイコン: @heroicons/react, @coreui/icons
 - ローディング表示: react-loading
 
@@ -34,6 +35,7 @@ API統合の実装は `getImgApi.ts`（サーバー専用）と `api/generate/ro
 - `app/components/MonsterForm.tsx`: モンスター生成フォームと結果表示コンポーネント
 - `app/api/generate/route.ts`: 入力の検証・1日の生成上限の管理を行い、画像を生成するサーバーAPI
 - `app/lib/getImgApi.ts`: GetImg.ai APIとの通信と指示文（プロンプト）の組み立てを行うサーバー専用の関数
+- `app/lib/translateDescription.ts`: 特徴（自由入力）を指示文用の英語に直すサーバー専用の関数（英数字だけの入力はそのまま使う）
 - `app/components/Button.tsx`: カスタムボタンコンポーネント
 - `app/components/Icons.tsx`: アイコンコンポーネント
 - `styles/globals.scss`: グローバルスタイル定義
@@ -53,7 +55,9 @@ npm install
 `.env.local`ファイルを作成し、GetImg.ai APIキーを設定（`NEXT_PUBLIC_` を付けない。付けるとブラウザ用のJSにキーが埋め込まれる）:
 ```
 GETIMG_API_KEY=your_api_key_here
+ANTHROPIC_API_KEY=your_api_key_here
 ```
+`ANTHROPIC_API_KEY` が無い時や英訳に失敗した時も生成は続きます（日本語の特徴は使わず、英数字の部分だけを指示文に入れる）。
 このほか、Vercel KV（生成回数・最近のモンスター）と Vercel Blob（画像の保存）の接続用の環境変数が必要です（Vercel の連携機能で設定されるもの）。
 
 4. 開発サーバーの起動
