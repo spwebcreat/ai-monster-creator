@@ -75,8 +75,9 @@ const MonsterForm = () => {
       });
   
       if (!saveResponse.ok) {
-        const errorData = await saveResponse.json();
-        throw new Error(`Failed to save image: ${errorData.error}`);
+        // 500 の HTML など JSON でない応答でも落ちないよう、本文は読めた時だけ使う
+        const errorData = await saveResponse.json().catch(() => null);
+        throw new Error(`Failed to save image: ${errorData?.error ?? saveResponse.status}`);
       }
   
       const { url: permanentImageUrl } = await saveResponse.json();
@@ -116,8 +117,8 @@ const MonsterForm = () => {
   
     } catch(error) {
       console.error('エラーが発生しました:', error);
+      // 黄色い帯（DB 制限）は /api/monsters の 429 の時だけ出す。それ以外の失敗は赤い文言のみ
       setErrorMessage('モンスターの生成中にエラーが発生しました。');
-      setIsKvLimitReached(true);
 
     } finally {
       setTimeout( async ()   => {
@@ -257,7 +258,7 @@ const MonsterForm = () => {
             <p>データベースの制限に達しました。モンスターの生成は可能ですが、一部の機能が制限されます。</p>
           </div>
         )}
-        { errorMessage && <p className="text-center mt-4">{errorMessage}</p>}
+        { errorMessage && <p className="text-center mt-4 text-red-400" role="alert">{errorMessage}</p>}
         { todayCount ? <p className="text-center mt-4">今日の生成回数: {todayCount}</p> : null}
     </div>
     

@@ -18,8 +18,11 @@ export async function POST(request: Request) {
     const blob = await response.blob();
 
     // vercel Blob に保存する
+    // @vercel/blob v1 以降は addRandomSuffix の既定が false（同名パスへの put は失敗する）。
+    // 旧版（0.x）と同じく接尾辞を付けて同名衝突を避ける
     const { url } = await put(`monsters/${Date.now()}.png`, blob, {
       access: 'public',
+      addRandomSuffix: true,
     });
     // console.log('Saved image URL:', url); // デバッグ用ログ
 

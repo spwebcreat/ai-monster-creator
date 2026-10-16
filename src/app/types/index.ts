@@ -10,11 +10,11 @@ export interface FormDataProps {
 
 export interface MonsterFormProps {
   onSubmit: (
-    description: string, 
-    attribute: string, 
-    job: string, 
-    gender: string, 
-    hiddenAttributeJp: string, 
+    description: string,
+    job: string,
+    gender: string,
+    attribute: string,
+    hiddenAttributeJp: string,
     type: string, 
     style: string,
   ) => void;

@@ -40,8 +40,8 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // onSubmit関数に渡す引数が不足しているため、styleを追加しました
-    onSubmit(description, job, attribute, gender, hiddenAttributeJp, type, style);
+    // 引数の順番は MonsterFormProps.onSubmit（受け側 handleFormSubmit）に合わせる
+    onSubmit(description, job, gender, attribute, hiddenAttributeJp, type, style);
     setShouldScroll(true);
   }
 
