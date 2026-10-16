@@ -1,6 +1,14 @@
 .showcase {
   @apply grid gap-6 items-center;
   @apply md:grid-cols-[1.05fr_1fr] md:gap-8;
+  // iPhone の Safari で横に揺れないよう、横へのはみ出し（光る輪・粒子）をここで切る。clip は縦を切らない（粒子が上へ抜ける）。
+  // clip を知らない古い Safari はスマホ幅だけ hidden で切る（PC 幅で hidden にすると、下へ出る光の分だけ中に縦のスクロールができるため）
+  @media (max-width: 767px) {
+    overflow-x: hidden;
+  }
+  @supports (overflow-x: clip) {
+    overflow-x: clip;
+  }
   // モンスターの画像の高さ（舞台の高さもここから決める）
   --monster-h: min(260px, 66vw);
   @media (min-width: 768px) {
@@ -64,8 +72,19 @@
     background: radial-gradient(circle, #fff 0 36%, var(--ac) 58%, rgba(var(--acr), 0) 78%);
     box-shadow: 0 0 12px 3px rgba(var(--acr), 0.8);
     opacity: 0;
-    will-change: transform, opacity;
+    // will-change は付けない（transform と opacity のアニメーションはブラウザが自動で別の層に載せる。常時の層を 30 枚作らない）
     animation: rise var(--duration) linear var(--delay) infinite;
+
+    // スマホでは軽くする: 粒子を半分にし、box-shadow を外して塗りのぼかしだけで光らせる
+    @media (max-width: 767px) {
+      box-shadow: none;
+      background: radial-gradient(circle, #fff 0 22%, var(--ac) 45%, rgba(var(--acr), 0.35) 60%, rgba(var(--acr), 0) 76%);
+      // 粒子は左右交互に並ぶので、4 個ずつの組から 3・4 番目を外す（片側だけが減らない）
+      &:nth-child(4n + 3),
+      &:nth-child(4n + 4) {
+        display: none;
+      }
+    }
   }
   // 手前の粒子はモンスターの画像より前に出す（低い所で消えるので顔は隠さない）
   &.front {
