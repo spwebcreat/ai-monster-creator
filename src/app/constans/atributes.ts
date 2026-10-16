@@ -135,3 +135,63 @@ export const JOBS: JobTypes[] = [
   },
   // 他の職業は変更なし
 ]
+
+// ---- トップの図鑑カード・見せ場で使う表示用の表 ----
+
+// 属性ごとの色（カードの枠・丸い印・光）。text は丸い印の中の文字色
+export const ATTRIBUTE_COLORS: { ja: string; color: string; text: string }[] = [
+  { ja: '火', color: '#FF5A3C', text: '#151515' },
+  { ja: '雷', color: '#F7D23A', text: '#151515' },
+  { ja: '水', color: '#3D8BFF', text: '#151515' },
+  { ja: '氷', color: '#8EE3FF', text: '#151515' },
+  { ja: '光', color: '#FFF3B0', text: '#151515' },
+  { ja: '闇', color: '#8A63D2', text: '#FFFFFF' },
+  { ja: '風', color: '#3DDC97', text: '#151515' },
+  { ja: '聖', color: '#E8C766', text: '#151515' },
+  { ja: '邪', color: '#C23BD4', text: '#FFFFFF' },
+];
+
+// 得意・不得意の項目。保存データに強さの数値は無いので、職業の基本値＋属性の補正で決める（乱数は使わない）
+export const MONSTER_STATS = [
+  { key: 'attack', ja: '攻撃' },
+  { key: 'defense', ja: '守り' },
+  { key: 'magic', ja: '魔力' },
+  { key: 'speed', ja: '素早さ' },
+] as const;
+
+export type MonsterStatKey = (typeof MONSTER_STATS)[number]['key'];
+
+// 棒の段数（値は 1〜この数）
+export const MONSTER_STAT_MAX = 5;
+
+// 職業ごとの基本値（キーは JOBS の en）
+export const JOB_BASE_STATS: Record<string, Record<MonsterStatKey, number>> = {
+  Warrior:      { attack: 5, defense: 4, magic: 1, speed: 2 },
+  Paladin:      { attack: 3, defense: 5, magic: 3, speed: 1 },
+  Mage:         { attack: 2, defense: 1, magic: 5, speed: 3 },
+  Necromancer:  { attack: 2, defense: 3, magic: 5, speed: 1 },
+  Assassin:     { attack: 4, defense: 1, magic: 2, speed: 5 },
+  Ninja:        { attack: 3, defense: 2, magic: 3, speed: 5 },
+  Beastmaster:  { attack: 4, defense: 3, magic: 1, speed: 4 },
+  Healer:       { attack: 1, defense: 4, magic: 5, speed: 2 },
+  Archer:       { attack: 5, defense: 2, magic: 1, speed: 4 },
+  Sage:         { attack: 2, defense: 2, magic: 5, speed: 1 },
+  Cyborg:       { attack: 4, defense: 5, magic: 1, speed: 3 },
+  Gunner:       { attack: 5, defense: 1, magic: 3, speed: 3 },
+  Samurai:      { attack: 5, defense: 3, magic: 1, speed: 4 },
+  DragonKnight: { attack: 5, defense: 4, magic: 3, speed: 2 },
+  Spellsword:   { attack: 4, defense: 2, magic: 4, speed: 3 },
+};
+
+// 属性ごとの補正（キーは MONSTER_ATTRIBUTES の ja）。up を +1、down を -1 する
+export const ATTRIBUTE_STAT_MODIFIERS: Record<string, { up: MonsterStatKey; down: MonsterStatKey }> = {
+  火: { up: 'attack', down: 'defense' },
+  雷: { up: 'speed', down: 'defense' },
+  水: { up: 'defense', down: 'attack' },
+  氷: { up: 'defense', down: 'speed' },
+  光: { up: 'magic', down: 'attack' },
+  闇: { up: 'magic', down: 'defense' },
+  風: { up: 'speed', down: 'attack' },
+  聖: { up: 'magic', down: 'speed' },
+  邪: { up: 'attack', down: 'magic' },
+};

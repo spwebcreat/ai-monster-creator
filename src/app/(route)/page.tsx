@@ -1,5 +1,4 @@
 import React from 'react'
-import styles from './page.module.scss'
 import  Button from '@/app/components/Button'
 import MonstersDisplay from '@/app/components/MonsterDisplay'
 import { getMonsters } from '@/app/lib/getMonsters'
@@ -11,12 +10,8 @@ const Home = async () => {
   return (
     <>
       <div className="globalConatiner">
-        <div className={styles.imageListTitle}>
-          <h2> 👾 最近生成されたモンスター </h2>
-        </div>
-        <div className={styles.imageListWrap}>
-          <MonstersDisplay initialMonsters={monsters} />
-        </div>
+        {/* 見出しと一覧は MonstersDisplay の中（ブラウザ側で取り直した一覧と揃えるため） */}
+        <MonstersDisplay initialMonsters={monsters} />
 
         <div className={`w-[80%] md:w-[50%] mx-auto grid gap-4`}>
           <Button text="👾モンスターを生成する" href="/create" className="buttonFull"></Button>

@@ -1,11 +1,11 @@
 'use client'
 
-import Image from 'next/image'
 import { Monster } from '@/app/types/index'
 import styles from './index.module.scss'
 import { useEffect, useState } from 'react'
 import Loading from '@/app/loading'
 import { isBlobImageUrl } from '@/app/lib/allowedUrl'
+import MonsterCard from '@/app/components/MonsterCard'
 
 // 描画してよいデータか（KV に残る過去のデータへの備え）。
 // 画像は https の Vercel Blob の URL のみ。文字として描く項目は文字列のみ（オブジェクトだと一覧ごと描画に失敗するため）
@@ -41,33 +41,26 @@ const MonstersDisplay = ({ initialMonsters }: { initialMonsters: Monster[] }) =>
 
   return (
     <>
-      
+
         {/* <div className={styles.updateButtonWrap}>
           { isLoading ? <Loading /> : (
             <button onClick={fetchMonsters} disabled={isLoading } className={styles.updateButton}>データを更新</button>
           )}
         </div> */}
-      
 
-      <div className={styles.imageList}>
-        {displayableMonsters.map((monster) => (
-          <div className={styles.imageListItem} key={monster.id}>
-            <Image src={monster.imageUrl} alt={typeof monster.description === 'string' && monster.description ? monster.description : '生成されたモンスター'} width={800} height={800} />
-            <div className={styles.imageItemTitle}>
-              <ul className="monsterMeatList">
-                <li>属性: {monster.attribute}</li>
-                <li>タイプ: {
-                  monster.type === 'Humanoid' ? '人型' : 
-                  monster.type === 'Animal' ? '動物型' : 
-                  monster.type === 'Mechanical' ? '機械型' : 
-                  monster.type === 'Plant' ? '植物型' : ''
-                }</li>
-              </ul>
-              <a download="monster.png" href={monster.imageUrl} className={styles.downloadButton}>ダウンロード</a>
-            </div>
+
+      <section>
+        <h2 className={styles.title}>最近生成されたモンスター</h2>
+        {displayableMonsters.length > 0 ? (
+          <div className={styles.list}>
+            {displayableMonsters.map((monster) => (
+              <MonsterCard monster={monster} key={monster.id} />
+            ))}
           </div>
-        ))}
-      </div>
+        ) : (
+          <p className={styles.empty}>表示できるモンスターがいません。</p>
+        )}
+      </section>
     </>
   )
 }

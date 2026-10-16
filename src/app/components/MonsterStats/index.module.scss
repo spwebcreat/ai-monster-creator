@@ -1,0 +1,73 @@
+.stats {
+  @apply grid gap-1;
+  li {
+    @apply grid items-center gap-1.5;
+    grid-template-columns: 3.2em 1fr 3.6em;
+  }
+}
+
+.label {
+  @apply text-gray-300;
+}
+
+.bar {
+  @apply flex gap-[3px];
+  i {
+    @apply flex-1 rounded-[2px];
+    background: rgba(255, 255, 255, 0.16);
+    &.on {
+      background: var(--ac);
+    }
+  }
+}
+
+.tag {
+  @apply text-center rounded-[3px] leading-[1.6] whitespace-nowrap;
+}
+
+// 得意（一番高い）: 項目名を属性の色で強調し、印を塗る
+.strong {
+  .label {
+    @apply font-bold;
+    color: var(--ac);
+  }
+  .tag {
+    @apply font-bold;
+    background: var(--ac);
+    color: var(--af);
+  }
+}
+
+// 不得意（一番低い）: 項目名と棒を沈め、印は枠だけ
+.weak {
+  .label {
+    @apply text-gray-500;
+  }
+  .bar i.on {
+    opacity: 0.55;
+  }
+  .tag {
+    @apply text-gray-400 border border-gray-500;
+  }
+}
+
+.sm {
+  @apply text-[10px] md:text-[11px];
+  .bar i {
+    @apply h-[6px];
+  }
+}
+
+.lg {
+  @apply text-sm gap-2;
+  li {
+    grid-template-columns: 4em 1fr 4.4em;
+    @apply gap-3;
+  }
+  .bar {
+    @apply gap-1;
+    i {
+      @apply h-[10px];
+    }
+  }
+}

@@ -1,0 +1,73 @@
+.card {
+  @apply relative flex flex-col p-2 md:p-2.5 rounded-[10px];
+  border: 2px solid var(--ac);
+  background: linear-gradient(180deg, rgba(var(--acr), 0.3), var(--bk) 55%);
+  box-shadow: 0 0 10px rgba(var(--acr), 0.35);
+  transition: transform 0.25s, box-shadow 0.25s;
+
+  // マウスを乗せると浮いて光る。指で触る端末では乗せたままにならないよう、マウスのある端末だけ
+  @media (hover: hover) {
+    &:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 0 24px rgba(var(--acr), 0.85);
+    }
+  }
+  &:focus-within {
+    box-shadow: 0 0 24px rgba(var(--acr), 0.85);
+  }
+
+  // 動きを減らす設定の利用者には浮かせず、光るだけにする
+  @media (prefers-reduced-motion: reduce) {
+    transition: box-shadow 0.25s;
+    @media (hover: hover) {
+      &:hover {
+        transform: none;
+      }
+    }
+  }
+}
+
+.top {
+  @apply flex justify-between items-center mb-1.5;
+}
+
+.attribute {
+  @apply grid place-items-center w-[26px] h-[26px] rounded-full font-bold text-sm;
+  background: var(--ac);
+  color: var(--af);
+}
+
+.type {
+  @apply text-[11px] px-1.5 rounded-[3px];
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.frame {
+  @apply relative overflow-hidden rounded-md;
+  border: 1px solid rgba(var(--acr), 0.7);
+  img {
+    // 縦長の画像はそのまま収まる。正方形・その他の比率は、顔が切れないよう上寄せで切る
+    object-fit: cover;
+    object-position: 50% 20%;
+  }
+}
+
+.job {
+  @apply font-bold text-base md:text-lg leading-tight mt-2 mb-1;
+}
+
+.desc {
+  @apply text-[11px] leading-normal text-gray-300 mb-2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.foot {
+  @apply flex justify-between items-center gap-2 mt-auto pt-2 text-[11px] text-gray-400;
+}
+
+.download {
+  @apply ml-auto bg-primary text-white font-bold rounded px-2.5 py-0.5 transition-colors hover:bg-black;
+}

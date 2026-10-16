@@ -1,30 +1,14 @@
-.imageList {
-  @apply 
-    w-[max-content] gap-8 md:w-[100%] mx-auto md:px-5 py-10
-    flex justify-center
-    md:grid md:grid-cols-[repeat(auto-fit,max(200px))] md:place-content-center;
-  &Wrap {
-    overflow-x:scroll;
-    max-width: 100%;
-    scroll-snap-type: x mandatory;
-  }
-  &Title {
-    @apply text-center text-2xl font-bold mb-5;
-  }
-  &Item {
-    @apply w-[180px];
-    scroll-snap-align: start;
-    // 正方形（以前の画像）と縦長（2:3）が混ざっても並びが崩れないよう、枠は正方形のまま全体を収める
-    img {
-      @apply w-[100%] aspect-square object-contain;
-    }
-    ul {
-      @apply text-sm my-2;
-      li {
-        @apply py-1;
-      }
-    }
-  }
+.title {
+  @apply text-center text-2xl font-bold mb-5;
+}
+
+// 図鑑カードの並び（PC 4 列・スマホ 2 列）
+.list {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 py-5;
+}
+
+.empty {
+  @apply text-center text-gray-300 py-10;
 }
 
 .updateButton {
@@ -32,8 +16,4 @@
   &Wrap {
     @apply w-fit  mx-auto mb-5;
   }
-}
-
-.downloadButton {
-  @apply bg-primary text-white text-[12px] px-5 py-2 font-bold rounded-md transition-all hover:bg-black;
 }
