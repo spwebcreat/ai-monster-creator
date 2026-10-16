@@ -60,7 +60,9 @@ const MonsterModal = ({ monster, returnFocusTo, onClose, admin }: Props) => {
     return () => {
       // ここでは dialog.close() を呼ばない（close イベント → onClose で、開いた直後に閉じてしまうため）
       root.style.overflow = previousOverflow;
-      returnFocusTo?.focus();
+      // 開いた元へフォーカスを戻す。画面は動かさない（スマホで見せ場の画像から開いた時に「詳しく見る」まで、
+      // Safari で足したカードから開いた時にそのカードの職業名まで、閉じた途端に画面が動かないように）
+      returnFocusTo?.focus({ preventScroll: true });
     };
   }, [returnFocusTo]);
 
