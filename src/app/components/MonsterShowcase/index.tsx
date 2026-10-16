@@ -59,7 +59,7 @@ const MonsterShowcase = ({ monster, onOpen }: Props) => {
   const stats = getMonsterStats(monster.job, monster.attribute);
 
   return (
-    <div className={styles.showcase} style={getAttributeStyle(monster.attribute)}>
+    <div className={styles.showcase} style={getAttributeStyle(monster.attribute)} data-monster-id={monster.id}>
       <div className={styles.stage}>
         {/* 魔法陣の輪（幅はここで決まる）。モンスターは輪の中心の少し上に立たせる */}
         <div className={styles.ring}>

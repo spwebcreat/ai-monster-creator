@@ -1,0 +1,40 @@
+// 図鑑カードと同じ世界観（暗い下地・赤の枠と光）
+.panel {
+  @apply w-full max-w-[420px] mx-auto p-6 md:p-8 rounded-[14px];
+  border: 2px solid var(--primary);
+  background: linear-gradient(180deg, rgba(229, 0, 53, 0.18), rgba(229, 0, 53, 0) 50%), var(--bk);
+  box-shadow: 0 0 32px rgba(229, 0, 53, 0.35);
+}
+
+.title {
+  @apply text-2xl font-bold text-center mb-6;
+}
+
+.form {
+  @apply grid gap-3;
+}
+
+.label {
+  @apply font-bold text-sm;
+}
+
+.input {
+  @apply w-full bg-black/60 text-white rounded-md px-4 py-3 border-2 border-gray-700 outline-none transition-colors;
+  &:focus {
+    @apply border-cyan-600;
+  }
+  &[aria-invalid='true'] {
+    @apply border-red-400;
+  }
+}
+
+.submit {
+  @apply mt-2 bg-primary text-white font-bold rounded-md py-3 transition-colors hover:bg-slate-800;
+  &:disabled {
+    @apply opacity-60 cursor-not-allowed hover:bg-primary;
+  }
+}
+
+.message {
+  @apply text-center text-red-300 text-sm;
+}

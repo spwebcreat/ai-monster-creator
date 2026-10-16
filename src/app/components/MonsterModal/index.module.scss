@@ -119,6 +119,48 @@
   @apply flex items-center justify-center gap-2 bg-primary text-white font-bold rounded-md py-3 transition-colors hover:bg-slate-800;
 }
 
+// 管理モードの時だけ出る「一覧から外す」とその確認
+.admin {
+  @apply pt-2;
+  border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.hide {
+  @apply w-full rounded-md py-2.5 text-sm font-bold text-red-200 border border-red-400/70 transition-colors;
+  &:hover {
+    @apply bg-red-500/15;
+  }
+}
+
+.confirm {
+  @apply grid gap-3 rounded-md p-4 text-sm;
+  border: 1px solid rgba(248, 113, 113, 0.7);
+  background: rgba(127, 29, 29, 0.25);
+  animation: fadeIn 0.2s ease-out;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.confirmButtons {
+  @apply grid grid-cols-2 gap-3;
+  button:disabled {
+    @apply opacity-60 cursor-wait;
+  }
+}
+
+.confirmHide {
+  @apply rounded-md py-2.5 font-bold bg-primary text-white transition-colors hover:bg-slate-800;
+}
+
+.confirmCancel {
+  @apply rounded-md py-2.5 font-bold border border-white/50 transition-colors hover:bg-white/10;
+}
+
+.hideError {
+  @apply text-red-300;
+}
+
 .close {
   @apply absolute top-3 right-3 z-10 grid place-items-center w-10 h-10 rounded-full text-white transition-colors;
   background: rgba(21, 21, 21, 0.85);
