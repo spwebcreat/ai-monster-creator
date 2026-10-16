@@ -10,6 +10,10 @@ import {
   MonsterStatKey,
 } from '@/app/constans/atributes';
 
+// 保存データの値で表（普通のオブジェクト）を引いてよいか。"__proto__"・"constructor" などで組み込みの値を拾わないよう、表そのものが持つ名前に限る
+const hasOwn = (table: object, key: unknown): key is string =>
+  typeof key === 'string' && Object.prototype.hasOwnProperty.call(table, key);
+
 // 表に無い属性（KV に残る過去のデータ）の色
 const FALLBACK_ATTRIBUTE_COLOR = { color: '#9CA3AF', text: '#151515' };
 
@@ -24,7 +28,7 @@ export const getJob = (job: unknown) =>
   typeof job === 'string' ? JOBS.find((item) => item.en === job) : undefined;
 
 export const getTypeLabel = (type: unknown) =>
-  typeof type === 'string' ? TYPE_LABELS[type] ?? '' : '';
+  hasOwn(TYPE_LABELS, type) ? TYPE_LABELS[type] : '';
 
 // 枠・印・光に使う CSS 変数（--ac: 色 / --acr: rgba 用の「r,g,b」/ --af: 印の文字色）
 export const getAttributeStyle = (attribute: string) => {
@@ -40,7 +44,7 @@ export const formatCreatedDate = (createdAt: unknown) => {
   if (Number.isNaN(date.getTime())) return '';
   return date
     .toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' })
-    .replaceAll('/', '.');
+    .replace(/\//g, '.');
 };
 
 export type MonsterStat = {
@@ -57,9 +61,9 @@ const WEAK_MAX = 2;
 
 // 得意・不得意の値。職業の基本値＋属性の補正（1〜MONSTER_STAT_MAX）。同じ職業・属性なら必ず同じ値。表に無い職業は null
 export const getMonsterStats = (job: unknown, attribute: unknown): MonsterStat[] | null => {
-  const base = typeof job === 'string' ? JOB_BASE_STATS[job] : undefined;
-  if (!base) return null;
-  const modifier = typeof attribute === 'string' ? ATTRIBUTE_STAT_MODIFIERS[attribute] : undefined;
+  if (!hasOwn(JOB_BASE_STATS, job)) return null;
+  const base = JOB_BASE_STATS[job];
+  const modifier = hasOwn(ATTRIBUTE_STAT_MODIFIERS, attribute) ? ATTRIBUTE_STAT_MODIFIERS[attribute] : undefined;
 
   const values = MONSTER_STATS.map(({ key }) => {
     const value = base[key] + (modifier?.up === key ? 1 : 0) - (modifier?.down === key ? 1 : 0);
