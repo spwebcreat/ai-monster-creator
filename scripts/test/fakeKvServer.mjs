@@ -59,6 +59,16 @@ export async function startFakeKv({ token = 'fake-kv-token' } = {}) {
     return created;
   };
 
+  // INCR・DECR（期限はそのまま残す）
+  const addInteger = (key, delta) => {
+    const entry = readTyped(key, 'string');
+    const current = entry ? Number(entry.value) : 0;
+    if (!Number.isInteger(current)) throw new CommandError('ERR value is not an integer or out of range');
+    const next = current + delta;
+    store.set(key, { ...entry, type: 'string', value: String(next) });
+    return next;
+  };
+
   const handlers = {
     ping: () => 'PONG',
     get: ([key]) => readTyped(key, 'string')?.value ?? null,
@@ -80,14 +90,8 @@ export async function startFakeKv({ token = 'fake-kv-token' } = {}) {
     },
     del: (keys) => keys.filter((key) => read(key) !== undefined && store.delete(key)).length,
     exists: (keys) => keys.filter((key) => read(key) !== undefined).length,
-    incr: ([key]) => {
-      const entry = readTyped(key, 'string');
-      const current = entry ? Number(entry.value) : 0;
-      if (!Number.isInteger(current)) throw new CommandError('ERR value is not an integer or out of range');
-      const next = current + 1;
-      store.set(key, { ...entry, type: 'string', value: String(next) });
-      return next;
-    },
+    incr: ([key]) => addInteger(key, 1),
+    decr: ([key]) => addInteger(key, -1),
     expire: ([key, seconds]) => {
       const entry = read(key);
       if (!entry) return 0;

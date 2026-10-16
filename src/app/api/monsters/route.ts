@@ -13,6 +13,8 @@ import {
 
 // ?offset=&limit= を読むため、毎回その場で応答する
 export const dynamic = 'force-dynamic';
+// KV への問い合わせ（@vercel/kv）の応答を Next に保存させない（GET だけの窓口では既定で保存され、古い値を返すため）
+export const fetchCache = 'force-no-store';
 
 export async function POST(request: Request) {
   try {
