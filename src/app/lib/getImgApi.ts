@@ -1,6 +1,7 @@
 // getimg.ai との通信（サーバー専用）。/api/generate からのみ使う。
 // 鍵は GETIMG_API_KEY（NEXT_PUBLIC_ なし）から読むため、ブラウザ用 JS には入らない
 import { JOBS } from '@/app/constans/atributes';
+import { MONSTER_IMAGE_HEIGHT, MONSTER_IMAGE_WIDTH } from '@/app/constans/imageSize';
 import { GenerateRequestBody } from '@/app/types';
 
 const GETIMG_ENDPOINT = 'https://api.getimg.ai/v1/flux-schnell/text-to-image';
@@ -96,6 +97,8 @@ const fetchMonsterImg = async (prompt: string): Promise<string> => {
     },
     body: JSON.stringify({
       prompt,
+      width: MONSTER_IMAGE_WIDTH,
+      height: MONSTER_IMAGE_HEIGHT,
       steps: 3,
       response_format: 'url'
     }),

@@ -68,6 +68,12 @@
 }
 
 .createdImg {
+  // 生成画像は縦長（2:3・imageSize.ts）。表示中だけ枠を縦長にする（待機中・生成中は正方形を 45 度回したひし形のまま）。
+  // 高さは正方形の頃と同じにして（幅はその 2/3）、足先が魔法陣の輪の光に隠れないようにする
+  &.monsterCard:not(.isLoading) {
+    @apply aspect-[2/3] w-[max(100px,33.333%)];
+    @apply md:w-[max(100px,26.667%)];
+  }
   &.monsterCard {
     animation: none;
     animation : fadeInScale 1s forwards , fcomplateFwafuwa 2s 1s infinite;

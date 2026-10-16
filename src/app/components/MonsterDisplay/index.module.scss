@@ -14,8 +14,9 @@
   &Item {
     @apply w-[180px];
     scroll-snap-align: start;
+    // 正方形（以前の画像）と縦長（2:3）が混ざっても並びが崩れないよう、枠は正方形のまま全体を収める
     img {
-      @apply w-[100%] object-cover;
+      @apply w-[100%] aspect-square object-contain;
     }
     ul {
       @apply text-sm my-2;

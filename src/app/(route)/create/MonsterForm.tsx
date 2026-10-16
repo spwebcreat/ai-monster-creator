@@ -13,6 +13,7 @@ import { revalidateRoot } from './actions';
 import { DAILY_GENERATION_LIMIT } from '@/app/lib/generationLimit';
 import { isBlobImageUrl } from '@/app/lib/allowedUrl';
 import { GENDERS, JOBS } from '@/app/constans/atributes';
+import { MONSTER_IMAGE_HEIGHT, MONSTER_IMAGE_WIDTH } from '@/app/constans/imageSize';
 
 const DAILY_LIMIT_MESSAGE = '本日の生成限度に達しました。明日またお試しください。';
 
@@ -203,8 +204,8 @@ const MonsterForm = () => {
             <Image 
               src={monsterImg} 
               alt={`${formData.description}のモンスター画像`}
-              width={800} 
-              height={800} 
+              width={MONSTER_IMAGE_WIDTH} 
+              height={MONSTER_IMAGE_HEIGHT} 
               className={styles.monsterImage}
             />
           )}
