@@ -51,6 +51,28 @@
   }
 }
 
+// 魔法陣から立ち上る粒子（属性の色）。動かすのは transform と opacity だけ
+.particles {
+  @apply absolute inset-x-0 pointer-events-none;
+  bottom: 10%; // 輪の中心のあたりから生まれる
+  height: 0;
+  i {
+    @apply absolute bottom-0 rounded-full;
+    left: var(--x);
+    width: var(--size);
+    height: var(--size);
+    background: radial-gradient(circle, #fff 0 36%, var(--ac) 58%, rgba(var(--acr), 0) 78%);
+    box-shadow: 0 0 12px 3px rgba(var(--acr), 0.8);
+    opacity: 0;
+    will-change: transform, opacity;
+    animation: rise var(--duration) linear var(--delay) infinite;
+  }
+  // 手前の粒子はモンスターの画像より前に出す（低い所で消えるので顔は隠さない）
+  &.front {
+    @apply z-[2];
+  }
+}
+
 .info {
   @apply grid gap-4 w-full max-w-[440px] mx-auto md:mx-0;
 }
@@ -101,7 +123,7 @@
   @apply block text-center bg-primary text-white font-bold rounded-md py-3 transition-colors hover:bg-slate-800;
 }
 
-// 動きを減らす設定の利用者には浮かせず、光も明滅させない
+// 動きを減らす設定の利用者には浮かせず、光も明滅させず、粒子も出さない
 @media (prefers-reduced-motion: reduce) {
   .monster,
   .circle .glow {
@@ -109,6 +131,9 @@
   }
   .circle .glow {
     opacity: 0.6;
+  }
+  .particles {
+    display: none;
   }
 }
 
@@ -119,6 +144,23 @@
   }
   50% {
     transform: translateY(12px);
+  }
+}
+
+@keyframes rise {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--alpha);
+  }
+  70% {
+    opacity: calc(var(--alpha) * 0.75);
+  }
+  100% {
+    transform: translate3d(var(--drift), calc(var(--monster-h) * var(--rise) * -1), 0) scale(0.5);
+    opacity: 0;
   }
 }
 
