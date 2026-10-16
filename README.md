@@ -14,7 +14,7 @@ AI Monster Generatorは、ユーザーが入力した特徴と属性を基にAI�
 - Frontend: Next.js 14, React 18, TypeScript
 - Styling: SCSS, Tailwind CSS
 - State Management: React Hooks (useState, useEffect)
-- API Requests: Axios
+- API Requests: fetch（getimg.ai へはサーバー側の `/api/generate` から呼び出す）
 - AI画像生成: GetImg.ai API (FLUX.1 [schnell] Text to Image)
 - アイコン: @heroicons/react, @coreui/icons
 - ローディング表示: react-loading
@@ -27,12 +27,13 @@ AI Monster Generatorは、ユーザーが入力した特徴と属性を基にAI�
 - カスタマイズ可能なプロンプト入力
 - 人型と動物型のモンスター生成に対応
 
-API統合の実装は `getImgApi.ts` ファイルで確認できます。
+API統合の実装は `getImgApi.ts`（サーバー専用）と `api/generate/route.ts` で確認できます。APIキーはサーバー側だけで使い、ブラウザには渡しません。
 
 ## プロジェクトの構造
 - `app/page.tsx`: メインページコンポーネント
 - `app/components/MonsterForm.tsx`: モンスター生成フォームと結果表示コンポーネント
-- `app/lib/getImgApi.ts`: GetImg.ai APIとの通信を行うユーティリティ関数
+- `app/api/generate/route.ts`: 入力の検証・1日の生成上限の管理を行い、画像を生成するサーバーAPI
+- `app/lib/getImgApi.ts`: GetImg.ai APIとの通信と指示文（プロンプト）の組み立てを行うサーバー専用の関数
 - `app/components/Button.tsx`: カスタムボタンコンポーネント
 - `app/components/Icons.tsx`: アイコンコンポーネント
 - `styles/globals.scss`: グローバルスタイル定義
@@ -49,10 +50,12 @@ npm install
 ```
 
 3. 環境変数の設定
-`.env.local`ファイルを作成し、GetImg.ai APIキーを設定:
+`.env.local`ファイルを作成し、GetImg.ai APIキーを設定（`NEXT_PUBLIC_` を付けない。付けるとブラウザ用のJSにキーが埋め込まれる）:
 ```
-NEXT_PUBLIC_GETIMG_API_KEY=your_api_key_here
+GETIMG_API_KEY=your_api_key_here
 ```
+このほか、Vercel KV（生成回数・最近のモンスター）と Vercel Blob（画像の保存）の接続用の環境変数が必要です（Vercel の連携機能で設定されるもの）。
+
 4. 開発サーバーの起動
 ```
 npm run dev

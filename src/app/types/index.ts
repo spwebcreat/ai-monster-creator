@@ -1,11 +1,11 @@
-export interface FormDataProps {
-  description?: string;
-  attribute: string;
+// /api/generate が受け取るフォームの値（サーバー側で許可リスト検証してから指示文を組み立てる）
+export interface GenerateRequestBody {
+  description: string;
   job: string;
   gender: string;
-  hiddenAttributeJp: string;
+  attribute: string;
   type: string;
-  style?: string;
+  style: string;
 }
 
 export interface MonsterFormProps {

@@ -17,7 +17,6 @@
     "@heroicons/react": "^2.1.5",
     "@vercel/blob": "^2.8.2",
     "@vercel/kv": "^2.0.0",
-    "axios": "^1.7.7",
     "framer-motion": "^11.5.4",
     "next": "14.2.35",
     "react": "^18",

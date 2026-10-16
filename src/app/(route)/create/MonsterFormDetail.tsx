@@ -2,7 +2,7 @@
 
 import { ButtonSubmit } from '@/app/components/Button'
 import React, { useCallback, useEffect, useState } from 'react'
-import { MONSTER_ATTRIBUTES, MONSTER_TYPES, MONSTER_STYLES, JOBS } from '@/app/constans/atributes'
+import { MONSTER_ATTRIBUTES, MONSTER_TYPES, MONSTER_STYLES, JOBS, GENDERS, DESCRIPTION_MAX_LENGTH } from '@/app/constans/atributes'
 import styles from './Create.module.scss'
 import type { MonsterFormProps } from '@/app/types'
 import Loading from '@/app/loading'
@@ -68,6 +68,7 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
             onChange={(e) => setDescription(e.target.value)} 
             placeholder="英語入力推奨 例: cute woman angry etc..."
             autoComplete='off'
+            maxLength={DESCRIPTION_MAX_LENGTH}
           />
           
         </div>
@@ -104,9 +105,11 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
               value={gender}
             >
               <option value="">選択してください</option>
-              <option value="male">男</option>
-              <option value="female">女</option>
-              <option value="unknown">不明</option>
+              {GENDERS.map((gender) => (
+                <option key={gender.en} value={gender.en}>
+                  {gender.ja}
+                </option>
+              ))}
             </select>
           </div>
 

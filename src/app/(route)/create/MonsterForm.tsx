@@ -3,7 +3,6 @@
 import styles from './Create.module.scss'
 import Image from 'next/image'
 import { ButtonShare , Button } from '@/app/components/Button'
-import { fetchMonsterImg } from "@/app/lib/getImgApi";
 import React, { useEffect, useState } from "react";
 import MonsterFormDetail from './MonsterFormDetail'
 import { IconShare,IconDownload } from '@/app/components/Icons'
@@ -11,6 +10,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { Monster } from '@/app/types/index';
 import { useRouter } from 'next/navigation';
 import { revalidateRoot } from './actions';
+import { DAILY_GENERATION_LIMIT } from '@/app/lib/generationLimit';
+
+const DAILY_LIMIT_MESSAGE = '本日の生成限度に達しました。明日またお試しください。';
 
 const MonsterForm = () => {
 
@@ -55,8 +57,9 @@ const MonsterForm = () => {
     setErrorMessage(null);
     setIsKvLimitReached(false);
 
-    if (todayCount >= 100) { // 例: 1日の制限を100回に設定
-      setErrorMessage('本日の生成限度に達しました。明日またお試しください。');
+    // 上限の強制はサーバー（/api/generate）が行う。ここは表示上の事前チェックのみ
+    if (todayCount >= DAILY_GENERATION_LIMIT) {
+      setErrorMessage(DAILY_LIMIT_MESSAGE);
       return;
     }
 
@@ -66,12 +69,31 @@ const MonsterForm = () => {
 
 
     try {
-      const tempImageUrl: string = await fetchMonsterImg({   description,attribute,type,style,job,gender,hiddenAttributeJp});
-      
+      // 画像の生成はサーバー側（getimg.ai の鍵はブラウザに出さない）
+      const generateResponse = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description, job, gender, attribute, type, style })
+      });
+      // 500 の HTML など JSON でない応答でも落ちないよう、本文は読めた時だけ使う
+      const generateData = await generateResponse.json().catch(() => null);
+
+      if (generateResponse.status === 429) {
+        setTodayCount(DAILY_GENERATION_LIMIT);
+        setErrorMessage(DAILY_LIMIT_MESSAGE);
+        return;
+      }
+      if (!generateResponse.ok || typeof generateData?.imageUrl !== 'string') {
+        throw new Error(`Failed to generate image: ${generateData?.error ?? generateResponse.status}`);
+      }
+      if (typeof generateData.todayCount === 'number') {
+        setTodayCount(generateData.todayCount);
+      }
+
       const saveResponse = await fetch('/api/saveImage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl: tempImageUrl, description, attribute, hiddenAttributeJp, type, style, job, gender })
+        body: JSON.stringify({ imageUrl: generateData.imageUrl })
       });
   
       if (!saveResponse.ok) {
@@ -113,7 +135,6 @@ const MonsterForm = () => {
       }
   
       setMonsterImg(permanentImageUrl);
-      setTodayCount(prevCount => prevCount + 1);
   
     } catch(error) {
       console.error('エラーが発生しました:', error);

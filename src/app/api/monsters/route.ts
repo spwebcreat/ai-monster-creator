@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
 import { Monster } from '@/app/types/index';
-
-// 今日の日付を "YYYY-MM-DD" 形式で取得する関数
-function getTodayKey() {
-  return new Date().toISOString().split('T')[0];
-}
+import { getGenerationCountKey } from '@/app/lib/generationLimit';
 
 const limit:number = 12;
 
@@ -13,7 +9,6 @@ export async function POST(request: Request) {
   try {
     const monster: Monster = await request.json();
     const key = `monster:${monster.id}`;
-    const todayKey = getTodayKey();
 
     // console.log('Received monster data:', monster); //デバッグ用
     try {
@@ -23,9 +18,7 @@ export async function POST(request: Request) {
       await kv.zadd('recent_monsters', { score: Date.now(), member: key });
       // 最新の5件のみを保持
       await kv.zremrangebyrank('recent_monsters', 0, -(limit+1));
-      // 今日の生成回数を増やす
-      await kv.incr(`generation_count:${todayKey}`);
-      
+      // 今日の生成回数は /api/generate が getimg.ai を呼ぶ前に数える（ここでは数えない）
     } catch (kvError) {
       console.error('ストレージが利用制限に達しました:');//kvError これを設定するとコンソールがうるさくなるので必要な場合のみセットする
       // KVエラーの場合、クライアントにエラーステータスを返す
@@ -52,7 +45,6 @@ export async function GET() {
   try {
     let monsters = [];
     let todayCount = 0;
-    const todayKey = getTodayKey();
 
 
     try {
@@ -71,7 +63,7 @@ export async function GET() {
         // モンスターデータがnullの場合は除外
         monsters = monsters.filter(monster => monster !== null);
       }
-      todayCount = await kv.get(`generation_count:${todayKey}`) || 0;
+      todayCount = await kv.get(getGenerationCountKey()) || 0;
     } catch (kvError) {
       console.error('KV fetch error:利用制限中です'); //kvError これを設定するとコンソールがうるさくなるので必要な場合のみセットする
       // KVエラーの場合、空の配列とカウント0を使用

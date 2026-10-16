@@ -1,5 +1,3 @@
-import { desc } from "framer-motion/client";
-
 export const MONSTER_ATTRIBUTES = [
   { ja: '火', en: 'Fire' },
   { ja: '雷', en: 'Thunder' },
@@ -25,6 +23,15 @@ export const MONSTER_STYLES = [
   { ja: 'アニメ風', en: 'Anime' },
   // { ja: 'リアル', en: 'Realistic' },
   { ja: 'リアル', en: 'Semi-realistic' }
+];
+
+// 特徴（自由入力）の文字数の上限。フォームの maxLength と /api/generate の検証で共有する
+export const DESCRIPTION_MAX_LENGTH = 200;
+
+export const GENDERS = [
+  { ja: '男', en: 'male' },
+  { ja: '女', en: 'female' },
+  { ja: '不明', en: 'unknown' },
 ];
 
 export interface JobTypes {

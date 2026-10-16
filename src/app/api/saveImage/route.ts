@@ -1,17 +1,34 @@
 import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
+import { GETIMG_IMAGE_HOST } from '@/app/constans/imageHosts.mjs';
+
+// 取りに行ってよいのは getimg.ai の画像置き場だけ（任意の URL をサーバーに取得させない）
+function parseAllowedImageUrl(imageUrl: unknown): URL | null {
+  if (typeof imageUrl !== 'string') return null;
+  let url: URL;
+  try {
+    url = new URL(imageUrl);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== 'https:' || url.hostname !== GETIMG_IMAGE_HOST || url.port !== '' || url.username || url.password) {
+    return null;
+  }
+  return url;
+}
 
 export async function POST(request: Request) {
   try {
     const { imageUrl } = await request.json();
     // console.log('Received imageUrl:', imageUrl); // デバッグ用ログ
 
-    if (!imageUrl || typeof imageUrl !== 'string') {
-      throw new Error('Invalid or missing imageUrl');
+    const allowedUrl = parseAllowedImageUrl(imageUrl);
+    if (!allowedUrl) {
+      return NextResponse.json({ error: 'Invalid imageUrl' }, { status: 400 });
     }
 
     // 本画像をfetch
-    const response = await fetch(imageUrl);
+    const response = await fetch(allowedUrl, { cache: 'no-store' });
     if (!response.ok) {
       throw new Error(`Failed to fetch image: ${response.statusText}`);
     }
