@@ -3,6 +3,7 @@
 import { 
   ShareIcon,
   ArrowDownOnSquareIcon ,
+  SparklesIcon,
 } from '@heroicons/react/24/solid'
 
 interface IconProps {
@@ -21,7 +22,15 @@ const IconDownload = ({ className }: IconProps) => {
   )
 }
 
+// 生成ボタンの印（絵文字の代わり）
+const IconSparkles = ({ className }: IconProps) => {
+  return (
+    <SparklesIcon className={className} />
+  )
+}
+
 export {
   IconShare,
-  IconDownload
+  IconDownload,
+  IconSparkles
 }

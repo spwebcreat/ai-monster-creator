@@ -1,6 +1,7 @@
 import React from 'react'
 import  Button from '@/app/components/Button'
 import MonstersDisplay from '@/app/components/MonsterDisplay'
+import { IconSparkles } from '@/app/components/Icons'
 import { getMonsters } from '@/app/lib/getMonsters'
 import { unstable_noStore as noStore } from 'next/cache';
 
@@ -14,7 +15,12 @@ const Home = async () => {
         <MonstersDisplay initialMonsters={monsters} />
 
         <div className={`w-[80%] md:w-[50%] mx-auto grid gap-4`}>
-          <Button text="👾モンスターを生成する" href="/create" className="buttonFull"></Button>
+          <Button
+            text="モンスターを生成する"
+            href="/create"
+            className="buttonFull"
+            iconProps={{ icon: IconSparkles, className: "size-6 text-white" }}
+          />
           <p className="text-center">今日の生成回数: {todayCount}</p>
         </div>
       </div>

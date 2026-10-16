@@ -6,6 +6,7 @@ import { MONSTER_ATTRIBUTES, MONSTER_TYPES, MONSTER_STYLES, JOBS, GENDERS, DESCR
 import styles from './Create.module.scss'
 import type { MonsterFormProps } from '@/app/types'
 import Loading from '@/app/loading'
+import { IconSparkles } from '@/app/components/Icons'
 
 
 const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProps) => {
@@ -162,7 +163,11 @@ const MonsterFormDetail = ({ onSubmit, isLoading, isGenerated }: MonsterFormProp
       {!isLoading &&
         <>
           <div className={styles.submitButtonWrap}>
-            <ButtonSubmit text={isGenerated ? "👾 再生成する" : "👾 モンスターを生成する"} className="buttonFull" />
+            <ButtonSubmit
+              text={isGenerated ? "再生成する" : "モンスターを生成する"}
+              className="buttonFull"
+              iconProps={{ icon: IconSparkles, className: "size-6 text-white" }}
+            />
           </div>
         </>
       }
