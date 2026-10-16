@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import { revalidateRoot } from './actions';
 import { DAILY_GENERATION_LIMIT } from '@/app/lib/generationLimit';
 import { isBlobImageUrl } from '@/app/lib/allowedUrl';
-import { GENDERS } from '@/app/constans/atributes';
+import { GENDERS, JOBS } from '@/app/constans/atributes';
 
 const DAILY_LIMIT_MESSAGE = '本日の生成限度に達しました。明日またお試しください。';
 
@@ -176,6 +176,9 @@ const MonsterForm = () => {
     }
   }
 
+  const monsterJobDisplay = (job:string) =>
+    JOBS.find((item) => item.en === job)?.ja ?? job;
+
   const monsterGenderDisplay = (gender:string) =>
     GENDERS.find((item) => item.en === gender)?.ja ?? gender;
 
@@ -221,7 +224,7 @@ const MonsterForm = () => {
               <div className={styles.monsterMeta}>
                 <dl>
                   <dt>職業</dt>
-                  <dd>{formData.job}</dd>
+                  <dd>{ monsterJobDisplay(formData.job) }</dd>
                 </dl>
                 <dl>
                   <dt>属性</dt>
