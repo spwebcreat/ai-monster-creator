@@ -35,7 +35,7 @@ API統合の実装は `getImgApi.ts`（サーバー専用）と `api/generate/ro
 - `app/components/MonsterForm.tsx`: モンスター生成フォームと結果表示コンポーネント
 - `app/api/generate/route.ts`: 入力の検証・1日の生成上限の管理を行い、画像を生成するサーバーAPI
 - `app/lib/getImgApi.ts`: GetImg.ai APIとの通信と指示文（プロンプト）の組み立てを行うサーバー専用の関数
-- `app/lib/translateDescription.ts`: 特徴（自由入力）を指示文用の英語に直すサーバー専用の関数（英数字だけの入力はそのまま使う）
+- `app/lib/translateDescription.ts`: 特徴（自由入力）を指示文用の英語に直すサーバー専用の関数（英数字だけの入力は英訳せず、どちらも 120 字までにして使う）
 - `app/components/Button.tsx`: カスタムボタンコンポーネント
 - `app/components/Icons.tsx`: アイコンコンポーネント
 - `styles/globals.scss`: グローバルスタイル定義

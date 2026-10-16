@@ -8,8 +8,9 @@ const TRANSLATE_MODEL = 'claude-haiku-5-5';
 const TRANSLATE_TIMEOUT_MS = 4_500;
 const TRANSLATE_MAX_TOKENS = 200;
 
-// 英訳の長さの上限（字数）。指示文が 256 トークンを超えても、切れるのが末尾の演出だけで済む長さ（810 組で実測）
-const TRANSLATED_MAX_LENGTH = 120;
+// 指示文に入れる特徴の長さの上限（字数・英訳も英語の直接入力も同じ）。
+// 指示文が 256 トークンを超えても、切れるのが末尾の演出だけで済む長さ（810 組で実測）
+const PROMPT_DESCRIPTION_MAX_LENGTH = 120;
 
 // 利用者の文は <description> の中に入れ、指示としては扱わせない
 const SYSTEM_PROMPT = `You convert a character description written by a user of a monster image generator into a short English phrase for an image-generation prompt.
@@ -91,7 +92,7 @@ const translateToEnglish = async (description: string): Promise<string | null> =
         typeof (block as { text?: unknown }).text === 'string')
       .map((block: { text: string }) => block.text)
       .join(' ');
-    const translated = toPromptText(text, TRANSLATED_MAX_LENGTH);
+    const translated = toPromptText(text, PROMPT_DESCRIPTION_MAX_LENGTH);
     if (translated === 'NONE') return '';
     if (!hasLetter(translated)) {
       console.error('Description translation failed: empty result');
@@ -106,15 +107,17 @@ const translateToEnglish = async (description: string): Promise<string | null> =
 };
 
 // 指示文に入れる特徴を返す。例外は投げない（英訳に失敗しても生成は止めない）。
+// 英数字と記号だけの入力は英訳せず、上限の字数で語の切れ目まで詰める（長いと職業の文が切れるため）。
 // 英訳できなかった時は、原文から英数字の部分だけを残す（日本語は FLUX が読めず、
 // 主題の直後に置くと CLIP の 77 トークンを意味のない記号で埋めて、全身の指定などを押し出すため）
 const toPromptDescription = async (description: string): Promise<string> => {
-  if (!description || isAsciiOnly(description)) return description;
+  if (!description) return '';
+  if (isAsciiOnly(description)) return toPromptText(description, PROMPT_DESCRIPTION_MAX_LENGTH);
 
   const translated = await translateToEnglish(description);
   if (translated !== null) return translated;
 
-  const asciiPart = toPromptText(description, TRANSLATED_MAX_LENGTH);
+  const asciiPart = toPromptText(description, PROMPT_DESCRIPTION_MAX_LENGTH);
   return hasLetter(asciiPart) ? asciiPart : '';
 };
 
