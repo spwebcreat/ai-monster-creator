@@ -15,7 +15,14 @@ export function parseHttpsUrlOnHost(value: unknown, host: string): URL | null {
   return url;
 }
 
+const BLOB_IMAGE_URL_MAX_LENGTH = 512;
+const BLOB_IMAGE_PATH_PREFIX = '/monsters/';
+
 // 保存済み画像（Vercel Blob）の URL か。/api/monsters の検証と、画像を src・href に使う描画側で共有する
 export function isBlobImageUrl(value: unknown): value is string {
-  return parseHttpsUrlOnHost(value, BLOB_IMAGE_HOST) !== null;
+  if (typeof value !== 'string' || value.length > BLOB_IMAGE_URL_MAX_LENGTH) return false;
+  // 末尾が「?」「#」だけでも URL の search・hash は空になるため、元の文字列で確かめる
+  if (value.includes('?') || value.includes('#')) return false;
+  const url = parseHttpsUrlOnHost(value, BLOB_IMAGE_HOST);
+  return url !== null && url.pathname.startsWith(BLOB_IMAGE_PATH_PREFIX);
 }
