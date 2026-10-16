@@ -36,6 +36,12 @@ API統合の実装は `getImgApi.ts`（サーバー専用）と `api/generate/ro
 - `app/api/generate/route.ts`: 入力の検証・1日の生成上限の管理を行い、画像を生成するサーバーAPI
 - `app/lib/getImgApi.ts`: GetImg.ai APIとの通信と指示文（プロンプト）の組み立てを行うサーバー専用の関数
 - `app/lib/translateDescription.ts`: 特徴（自由入力）を指示文用の英語に直すサーバー専用の関数（英数字だけの入力は英訳せず、どちらも 120 字までにして使う）
+- `app/api/monsters/route.ts`: モンスターの保存（POST）と一覧の読み出し（GET・`?offset=&limit=`）を行うサーバーAPI
+- `app/api/admin/*`: 管理モード（一覧から外す・戻す）の窓口
+- `app/lib/monsterRecord.ts`: 保存するモンスターの検証（POST・一覧の読み出し・索引づくりのスクリプトで共有）
+- `app/lib/monsterIndex.ts`: 一覧の索引（KV のキー名・1 回に返す件数など）の決まりごと
+- `app/lib/adminAuth.ts`: 管理モードの認証（合言葉の照合・cookie の発行と検証・Origin の確認）
+- `scripts/backfill-all-monsters.mjs`: 過去のモンスターから全件の索引を作る一回限りのスクリプト
 - `app/components/Button.tsx`: カスタムボタンコンポーネント
 - `app/components/Icons.tsx`: アイコンコンポーネント
 - `styles/globals.scss`: グローバルスタイル定義
@@ -58,7 +64,8 @@ GETIMG_API_KEY=your_api_key_here
 ANTHROPIC_API_KEY=your_api_key_here
 ```
 `ANTHROPIC_API_KEY` が無い時や英訳に失敗した時も生成は続きます（日本語の特徴は使わず、英数字の部分だけを指示文に入れる）。
-このほか、Vercel KV（生成回数・最近のモンスター）と Vercel Blob（画像の保存）の接続用の環境変数が必要です（Vercel の連携機能で設定されるもの）。
+このほか、Vercel KV（生成回数・モンスターと一覧の索引）と Vercel Blob（画像の保存）の接続用の環境変数が必要です（Vercel の連携機能で設定されるもの）。
+管理モードを使う時は、合言葉を `ADMIN_PASSWORD` に設定します（`NEXT_PUBLIC_` を付けない。未設定なら管理の窓口はすべて 404 になる）。
 
 4. 開発サーバーの起動
 ```
@@ -73,6 +80,42 @@ npm run dev
 4. "モンスターを生成する"ボタンをクリック
 5. 魔法陣のアニメーションと共に生成されたモンスター画像を確認
 6. 「Xでシェアする」ボタンを使用してSNSで共有するか、「画像をダウンロード」ボタンで画像を保存
+
+## 一覧の読み込み（API）
+- `GET /api/monsters?offset=<整数>&limit=<整数>`: 全件の索引 `all_monsters`（score は作成日時のミリ秒）を新しい順に読む。`limit` は既定 13・上限 24、`offset` は既定 0（数でない・負の値は既定に戻す）
+- 応答は `{ monsters, todayCount, nextOffset }`。`nextOffset` は続きを読む時に渡す offset（続きが無ければ `null`）。読めない・一覧に出す条件に合わないデータは飛ばすため、件数が `limit` に満たないことがある
+- 一覧に出す条件（`checkListedMonster`）は保存の検証より緩い: id が UUID・画像が今の保存先の URL・作成日時が日時として読める・職業／属性（日本語名）／タイプが今の一覧にある。性別と特徴は条件にせず、性別は今の選択肢に無ければ項目ごと省き、特徴は文字列でなければ空文字・200 字で切って返す
+- `all_monsters` が最新 12 件の索引 `recent_monsters` より少ない間（索引を作る前）は、`recent_monsters` を読む
+- サーバー側の描画は `getMonsters({ offset, limit })` で同じ形を受け取る
+- `POST /api/monsters` は保存の検証（すべての項目を今の許可リストで確かめる）に合うものだけを保存し、両方の索引に入れる。同じ id が既にあれば 409 を返し、上書きしない
+
+## 管理モード（一覧から外す）
+サイトの管理者が、一覧に出したくないモンスターを外すための窓口です。`monster:<id>` と画像は消さず、索引から外すだけです。
+
+- `POST /api/admin/login`（本文 `{ password }`）: `ADMIN_PASSWORD` と一致すれば、HttpOnly・Secure・SameSite=Strict の cookie を発行する（12 時間）。違えば 401
+  - 失敗は接続元ごとに 15 分の区切りで 5 回まで、全体で 1 日（UTC）50 回まで。それを超える試行は合言葉が正しくても 429
+- `POST /api/admin/logout`: cookie を消す
+- `GET /api/admin/session`: `{ admin: boolean }`
+- `POST /api/admin/hide`・`POST /api/admin/unhide`（本文 `{ id }`）: cookie が有効で、Origin がサイト自身の時だけ受け付ける（cookie が無い・期限切れは 401、Origin が違うと 403）。外した記録は KV の `hidden_monsters` に残り、戻す時はそこから元の位置に戻す
+- `trailingSlash: true` のため、`/api/admin/login/` のように末尾に `/` を付けて呼ぶと転送が 1 回減る
+
+## 全件の索引を作る（一回限り）
+`all_monsters` を導入する前のモンスターを索引に入れるスクリプトです（Node 24 以降）。`.env.local` の `KV_REST_API_URL`・`KV_REST_API_TOKEN` の KV に接続します（値は表示しない）。
+```
+# 試し実行（既定・書き込まない）: 件数・年月ごとの内訳・外す理由の例を出す
+node --env-file=.env.local scripts/backfill-all-monsters.mjs
+
+# 書き込む
+node --env-file=.env.local scripts/backfill-all-monsters.mjs --apply
+```
+- `monster:*` をすべて読み、一覧に出す条件（GET と同じ）に合い、一覧から外しておらず、画像に HEAD を送って 200 が返るものだけを入れる
+- 書き込むのは `all_monsters` への ZADD だけ（ほかのキーは変えない）。何度流しても同じ結果になる
+
+## 試験
+偽の KV（Upstash の受け答えを真似るメモリ上のサーバー）に向けて、一覧・管理の窓口・索引づくりのスクリプトを試します。本番の KV や画像の保存先には通信しません（Node 24 以降）。
+```
+node --test "scripts/test/*.test.mjs"
+```
 
 ## 今後の展望
 - ユーザー認証機能の実装
