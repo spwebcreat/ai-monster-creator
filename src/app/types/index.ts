@@ -41,3 +41,11 @@ export interface MonstersPage {
   // 続きを読む時に渡す offset（索引上の位置）。続きが無ければ null
   nextOffset: number | null;
 }
+
+// 一覧から外したモンスターの記録（KV の hash hidden_monsters の値。キーはモンスターの id）
+export interface HiddenMonsterRecord {
+  // 外した時刻（ミリ秒）
+  hiddenAt: number;
+  // 外す前の all_monsters の score（戻す時に使う）
+  score: number;
+}
