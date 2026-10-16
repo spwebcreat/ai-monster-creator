@@ -23,15 +23,19 @@ export async function POST(request: Request) {
     const key = monsterKey(monster.id);
 
     // console.log('Received monster data:', monster); //デバッグ用
+    let created = false;
     try {
-      // モンスターデータを保存
-      await kv.set(key, JSON.stringify(monster));
-      // 全件の索引に追加（score は作成日時）
-      await kv.zadd(ALL_MONSTERS_KEY, { score: toIndexScore(monster.createdAt), member: key });
-      // 最近のモンスターリストに追加
-      await kv.zadd(RECENT_MONSTERS_KEY, { score: Date.now(), member: key });
-      // 最新の 12 件のみを保持
-      await kv.zremrangebyrank(RECENT_MONSTERS_KEY, 0, -(RECENT_MONSTERS_MAX + 1));
+      // モンスターデータを保存。同じ id が既にあれば保存しない
+      // （一覧に出ている id で送り直して、他人のモンスターを書き換えたり、一覧から外したものを戻したりできないように）
+      created = (await kv.set(key, JSON.stringify(monster), { nx: true })) !== null;
+      if (created) {
+        // 全件の索引に追加（score は作成日時）
+        await kv.zadd(ALL_MONSTERS_KEY, { score: toIndexScore(monster.createdAt), member: key });
+        // 最近のモンスターリストに追加
+        await kv.zadd(RECENT_MONSTERS_KEY, { score: Date.now(), member: key });
+        // 最新の 12 件のみを保持
+        await kv.zremrangebyrank(RECENT_MONSTERS_KEY, 0, -(RECENT_MONSTERS_MAX + 1));
+      }
       // 今日の生成回数は /api/generate が getimg.ai を呼ぶ前に数える（ここでは数えない）
     } catch (kvError) {
       console.error('ストレージが利用制限に達しました:');//kvError これを設定するとコンソールがうるさくなるので必要な場合のみセットする
@@ -42,6 +46,9 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!created) {
+      return NextResponse.json({ error: 'Monster already exists' }, { status: 409 });
+    }
 
     return NextResponse.json(
       { message: 'Monster saved successfully', monster },

@@ -132,6 +132,29 @@ describe('POST /api/monsters', () => {
     assert.ok(fake.zscore('all_monsters', keyOf(51)) <= Date.now());
   });
 
+  test('同じ id が既にあれば 409 で、中身も索引も変えない', async () => {
+    seed(53, { recent: true });
+    const before = fake.snapshot();
+    const response = await post(makeMonster(53, { description: '書き換え', createdAt: new Date().toISOString() }));
+    assert.equal(response.status, 409);
+    assert.equal(fake.snapshot(), before);
+  });
+
+  test('一覧から外したモンスターを同じ id で送り直しても一覧に戻らない', async () => {
+    seed(54);
+    fake.setHash('hidden_monsters', { [idOf(54)]: JSON.stringify({ hiddenAt: 1, score: 2 }) });
+    // 外した状態（索引には無く、本体は残っている）
+    const removed = JSON.parse(fake.snapshot()).filter(([key]) => key !== 'all_monsters');
+    fake.clear();
+    for (const [key, type, value] of removed) {
+      if (type === 'string') fake.setString(key, value);
+      if (type === 'hash') fake.setHash(key, Object.fromEntries(value));
+    }
+    assert.equal((await post(makeMonster(54))).status, 409);
+    assert.equal(fake.zscore('all_monsters', keyOf(54)), null);
+    assert.equal(fake.zscore('recent_monsters', keyOf(54)), null);
+  });
+
   test('検証に合わないものは 400 で、何も書かない', async () => {
     const response = await post(makeMonster(52, { imageUrl: `${BLOB_ORIGIN}/other/52.png` }));
     assert.equal(response.status, 400);
