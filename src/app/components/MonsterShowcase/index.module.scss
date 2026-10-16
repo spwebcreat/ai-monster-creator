@@ -1,0 +1,133 @@
+.showcase {
+  @apply grid gap-6 items-center;
+  @apply md:grid-cols-[1.05fr_1fr] md:gap-8;
+  // モンスターの画像の高さ（舞台の高さもここから決める）
+  --monster-h: min(260px, 66vw);
+  @media (min-width: 768px) {
+    --monster-h: 320px;
+  }
+}
+
+// 魔法陣の舞台
+.stage {
+  @apply relative;
+  height: calc(var(--monster-h) + 90px);
+}
+
+.ring {
+  @apply absolute bottom-0 left-1/2;
+  width: min(500px, 100%);
+  translate: -50% 0;
+}
+
+.circle {
+  @apply relative pointer-events-none;
+  img {
+    @apply block w-full h-auto;
+  }
+  // 光る輪は土台の輪に合わせて少し大きく重ね、明滅させる
+  .glow {
+    @apply absolute max-w-none;
+    width: 129%;
+    left: 50%;
+    top: -19%;
+    translate: -50% 0;
+    animation: glow 4s ease-in-out infinite;
+  }
+}
+
+// 足元を輪の中心（土台の画像の下から 12.5%）の少し上に置く
+.monster {
+  @apply absolute left-1/2 z-[1];
+  bottom: 14%;
+  translate: -50% 0;
+  animation: float 2.4s ease-in-out infinite;
+  img {
+    @apply block rounded-lg max-w-none;
+    height: var(--monster-h);
+    width: auto;
+    box-shadow: 0 0 34px rgba(var(--acr), 0.6);
+    border: 1px solid rgba(var(--acr), 0.7);
+  }
+}
+
+.info {
+  @apply grid gap-4 w-full max-w-[440px] mx-auto md:mx-0;
+}
+
+.badge {
+  @apply w-fit bg-primary text-white text-xs font-bold rounded px-3 py-0.5;
+}
+
+.job {
+  @apply text-3xl md:text-4xl font-bold leading-tight;
+}
+
+.desc {
+  @apply text-sm text-gray-300 leading-relaxed;
+}
+
+// 生成ページの結果表示（赤い見出し・黒い値）と同じ見た目
+.meta {
+  @apply grid gap-1;
+  dl {
+    @apply grid grid-cols-[100px_1fr];
+  }
+  dt {
+    @apply font-bold bg-primary text-center p-2;
+  }
+  dd {
+    @apply flex items-center justify-center gap-2 bg-bk text-center p-2 px-5;
+  }
+}
+
+.attribute {
+  @apply inline-block w-3 h-3 rounded-full;
+  background: var(--ac);
+  box-shadow: 0 0 8px rgba(var(--acr), 0.8);
+}
+
+.stats {
+  @apply grid gap-2 rounded-md p-4;
+  background: rgba(21, 21, 21, 0.8);
+  border: 1px solid rgba(var(--acr), 0.5);
+}
+
+.note {
+  @apply text-[11px] text-gray-400;
+}
+
+.download {
+  @apply block text-center bg-primary text-white font-bold rounded-md py-3 transition-colors hover:bg-slate-800;
+}
+
+// 動きを減らす設定の利用者には浮かせず、光も明滅させない
+@media (prefers-reduced-motion: reduce) {
+  .monster,
+  .circle .glow {
+    animation: none;
+  }
+  .circle .glow {
+    opacity: 0.6;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(12px);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import Loading from '@/app/loading'
 import { isBlobImageUrl } from '@/app/lib/allowedUrl'
 import MonsterCard from '@/app/components/MonsterCard'
+import MonsterShowcase from '@/app/components/MonsterShowcase'
 
 // 描画してよいデータか（KV に残る過去のデータへの備え）。
 // 画像は https の Vercel Blob の URL のみ。文字として描く項目は文字列のみ（オブジェクトだと一覧ごと描画に失敗するため）
@@ -38,6 +39,8 @@ const MonstersDisplay = ({ initialMonsters }: { initialMonsters: Monster[] }) =>
 
 
   const displayableMonsters = Array.isArray(monsters) ? monsters.filter(isDisplayableMonster) : [];
+  // 最新の 1 体は見せ場に出し、同じ絵が 2 回出ないよう一覧からは外す
+  const [latestMonster, ...otherMonsters] = displayableMonsters;
 
   return (
     <>
@@ -50,17 +53,24 @@ const MonstersDisplay = ({ initialMonsters }: { initialMonsters: Monster[] }) =>
 
 
       <section>
-        <h2 className={styles.title}>最近生成されたモンスター</h2>
-        {displayableMonsters.length > 0 ? (
-          <div className={styles.list}>
-            {displayableMonsters.map((monster) => (
-              <MonsterCard monster={monster} key={monster.id} />
-            ))}
-          </div>
+        <h2 className={styles.title}>最新のモンスター</h2>
+        {latestMonster ? (
+          <MonsterShowcase monster={latestMonster} key={latestMonster.id} />
         ) : (
           <p className={styles.empty}>表示できるモンスターがいません。</p>
         )}
       </section>
+
+      {otherMonsters.length > 0 && (
+        <section>
+          <h2 className={styles.title}>最近生成されたモンスター</h2>
+          <div className={styles.list}>
+            {otherMonsters.map((monster) => (
+              <MonsterCard monster={monster} key={monster.id} />
+            ))}
+          </div>
+        </section>
+      )}
     </>
   )
 }
